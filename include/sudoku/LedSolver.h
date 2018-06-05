@@ -26,20 +26,22 @@ namespace sudoku {
 
 class LedSolver {
 public:
-    LedSolver(const char* file)
-    {
-        svm = SVM::create();
-        svm = svm->load(file);
-        kernel = getStructuringElement(MORPH_RECT, Size(3, 3));
-        hog = new cv::HOGDescriptor(cvSize(28, 28), cvSize(14, 14), cvSize(7, 7), cvSize(7, 7), 9);
-    };
-    ~LedSolver(){};
-    void process(Mat& led_roi);
+    LedSolver();
+    ~LedSolver();
+    void init(const char* file);
+    bool process(Mat& led_roi);
+    int getResult(int index);
+    void setRedThreshold(int thres);
 
 private:
     Ptr<SVM> svm;
     Mat kernel;
     HOGDescriptor *hog;
+    int results[5];
+    int RED_THRESHOLD;
+
+    void getRed(Mat& led_roi, Mat& led_roi_binary);
+    int predict(Mat& roi);
 };
 }
 

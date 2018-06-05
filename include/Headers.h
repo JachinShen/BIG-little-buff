@@ -1,8 +1,8 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/opencv.hpp>
 #include <opencv2/ml/ml.hpp>
+#include <opencv2/opencv.hpp>
 using namespace cv;
 
 #include <algorithm>
@@ -24,6 +24,7 @@ using namespace cv;
 #include <cv_bridge/cv_bridge.h>
 #include <image_transport/image_transport.h>
 #include <ros/ros.h>
+#include <std_msgs/Bool.h>
 #include <std_msgs/Int16MultiArray.h>
 
 using std::copy;

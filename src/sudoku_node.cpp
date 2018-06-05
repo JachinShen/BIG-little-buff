@@ -16,16 +16,17 @@ limitations under the License.
 *********************************************/
 
 #include "sudoku/ImageProcess.h"
-//#include "uart_node/sudoku_mode.h"
 
 static ros::Publisher led_rect_pub;
 static ros::Publisher handwrite_rects_pub;
-//static ros::Rate loop_rate(30);
+static ImageProcess image_process;
+
+void sudokuParamCallback(const std_msgs::Int16MultiArray& msg){
+    image_process.setParam(msg.data[0], msg.data[1]);
+}
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
-    //ROS_INFO("Image Call!");
-    static sudoku::ImageProcess image_process;
     static Mat img, gray, binary;
     Rect led_rect;
     vector<Rect> handwrite_rects;
@@ -34,28 +35,27 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
         return;
     if (image_process.process(img, led_rect, handwrite_rects)) {
         cout << "Led Rect: " << led_rect << endl;
-        std_msgs::Int16MultiArray led_msg;
-        led_msg.data.push_back(led_rect.x);
-        led_msg.data.push_back(led_rect.y);
-        led_msg.data.push_back(led_rect.width);
-        led_msg.data.push_back(led_rect.height);
-        led_rect_pub.publish(led_msg);
+        std_msgs::Int16MultiArray led_rect_msg;
+        led_rect_msg.data.push_back(led_rect.x);
+        led_rect_msg.data.push_back(led_rect.y);
+        led_rect_msg.data.push_back(led_rect.width);
+        led_rect_msg.data.push_back(led_rect.height);
+        led_rect_pub.publish(led_rect_msg);
 
         cout << "Hand Write Rects: " << handwrite_rects[0] << endl;
-        std_msgs::Int16MultiArray handwrite_msg;
+        std_msgs::Int16MultiArray handwrite_rects_msg;
         for (uint i = 0; i < handwrite_rects.size(); ++i) {
-            handwrite_msg.data.push_back(handwrite_rects[i].x);
-            handwrite_msg.data.push_back(handwrite_rects[i].y);
-            handwrite_msg.data.push_back(handwrite_rects[i].width);
-            handwrite_msg.data.push_back(handwrite_rects[i].height);
+            handwrite_rects_msg.data.push_back(handwrite_rects[i].x);
+            handwrite_rects_msg.data.push_back(handwrite_rects[i].y);
+            handwrite_rects_msg.data.push_back(handwrite_rects[i].width);
+            handwrite_rects_msg.data.push_back(handwrite_rects[i].height);
         }
-        handwrite_rects_pub.publish(handwrite_msg);
+        handwrite_rects_pub.publish(handwrite_rects_msg);
 
-        imshow("sudoku img", img);
     } else {
         ROS_INFO("No sudoku Found!");
     }
-        waitKey(0);
+        waitKey(1);
 }
 
 int main(int argc, char* argv[])
@@ -64,15 +64,16 @@ int main(int argc, char* argv[])
     ROS_INFO("Start!");
     ros::NodeHandle nh;
 
-    led_rect_pub = nh.advertise<std_msgs::Int16MultiArray>("buff/led_rect", 4);
-    handwrite_rects_pub = nh.advertise<std_msgs::Int16MultiArray>("buff/handwrite_rects", 4*9);
+    image_process.init();
+
+    led_rect_pub = nh.advertise<std_msgs::Int16MultiArray>("buff/led_rect", 1);
+    handwrite_rects_pub = nh.advertise<std_msgs::Int16MultiArray>("buff/handwrite_rects", 1);
     image_transport::ImageTransport it(nh);
     image_transport::Subscriber sub = it.subscribe("camera/image", 1, imageCallback);
-
-    cv::namedWindow("sudoku parameters");
+    ros::Subscriber sudoku_param_sub = nh.subscribe("buff/sudoku_param", 1, sudokuParamCallback);
 
     ros::spin();
 
-    ROS_INFO("End!");
+    ROS_INFO("Finish!");
     return 0;
 }

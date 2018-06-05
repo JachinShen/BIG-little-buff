@@ -20,18 +20,20 @@ limitations under the License.
 
 #include "Headers.h"
 
-namespace sudoku {
-
 class ImageProcess {
 public:
     ImageProcess();
     ~ImageProcess();
+    void init();
     bool process(Mat& input, Rect& led_rect, vector<Rect>& handwrite_rects);
+    void setParam(int index, int data);
 
 private:
-    vector<Rect> LedArea;
-    vector<Rect> SudokuArea;
+    int SUDOKU_GRAY_THRES;
+    int SUDOKU_AREA_MIN;
+    int SUDOKU_AREA_MAX;
+    int SUDOKU_HW_RATIO_MIN;
+    int SUDOKU_AREA_RATIO;
 };
-}
 
 #endif /* defined(__sudoku__ImageProcess__) */

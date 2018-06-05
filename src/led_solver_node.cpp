@@ -16,14 +16,13 @@ limitations under the License.
 *********************************************/
 
 #include "sudoku/LedSolver.h"
-#include <pthread.h>
 
 static ros::Publisher led_num_pub;
 static cv_bridge::CvImageConstPtr cv_ptr;
+static sudoku::LedSolver led_solver;
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
-    //ROS_INFO("Image Call!");
     try
     {
         cv_ptr = cv_bridge::toCvShare(msg, sensor_msgs::image_encodings::BGR8);
@@ -35,15 +34,16 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
     }
 }
 
-void ledCallback(const std_msgs::Int16MultiArray& msg)
+void ledRectCallback(const std_msgs::Int16MultiArray& msg)
 {
-    static sudoku::LedSolver led_solver("./src/buff/svm/SVM_DATA_NUM.xml");
-    static Rect led_rect;
-    static Mat led_roi;
+    static std_msgs::Int16MultiArray led_num_msg;
     static Mat img;
+    static Mat led_roi;
+    static Rect led_rect;
 
     led_rect = Rect(msg.data[0], msg.data[1],
             msg.data[2], msg.data[3]);
+
     img = cv_ptr->image;
     if (img.empty()) {
         cout << "Empty Image" << endl;
@@ -51,9 +51,20 @@ void ledCallback(const std_msgs::Int16MultiArray& msg)
     }
 
     led_roi = Mat(img, led_rect);
-    led_solver.process(led_roi);
-    imshow("led img", led_roi);
+    if (led_solver.process(led_roi))
+    {
+        led_num_msg.data.clear();
+        for (uint i=0; i<5; ++i)
+            led_num_msg.data.push_back(led_solver.getResult(i));
+        led_num_pub.publish(led_num_msg);
+    }
+
     waitKey(1);
+}
+
+void ledParamCallback(const std_msgs::Int16MultiArray& msg)
+{
+    led_solver.setRedThreshold(msg.data[0]);
 }
 
 int main(int argc, char* argv[])
@@ -65,14 +76,18 @@ int main(int argc, char* argv[])
     led_num_pub 
         = nh.advertise<std_msgs::Int16MultiArray>("buff/led_num", 1);
 
+    led_solver.init("./src/buff/svm/SVM_DATA_NUM.xml");
+
     image_transport::ImageTransport it(nh);
     image_transport::Subscriber sub 
         = it.subscribe("camera/image", 1, imageCallback);
     ros::Subscriber led_rect_sub 
-        = nh.subscribe("buff/led_rect", 1, ledCallback);
+        = nh.subscribe("buff/led_rect", 1, ledRectCallback);
+    ros::Subscriber led_param_sub
+        = nh.subscribe("buff/led_param", 1, ledParamCallback);
 
     ros::spin();
 
-    ROS_INFO("End!");
+    ROS_INFO("Finish!");
     return 0;
 }

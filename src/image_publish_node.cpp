@@ -21,7 +21,7 @@ int main(int argc, char** argv)
     ros::init(argc, argv, "image_publisher");
     ros::NodeHandle nh;
     image_transport::ImageTransport it(nh);
-    image_transport::Publisher pub = it.advertise("camera/image", 2);
+    image_transport::Publisher pub = it.advertise("camera/image", 1, true);
 
     cv::Mat frame;
     sensor_msgs::ImagePtr msg;

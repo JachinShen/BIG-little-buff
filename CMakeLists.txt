@@ -251,6 +251,28 @@ target_link_libraries(led_num_node
     ${catkin_LIBRARIES}
     ${OpenCV_LIBS}
     )
+add_executable(control_node
+    ./src/control_node.cpp
+    ./src/state_machine.cpp
+    )
+target_link_libraries(control_node 
+    ${catkin_LIBRARIES}
+    ${OpenCV_LIBS}
+    )
+add_executable(param_node
+    ./src/param_node.cpp
+    )
+target_link_libraries(param_node 
+    ${catkin_LIBRARIES}
+    ${OpenCV_LIBS}
+    )
+add_executable(mnist_node
+    ./src/mnist_node.cpp
+    )
+target_link_libraries(mnist_node 
+    ${catkin_LIBRARIES}
+    ${OpenCV_LIBS}
+    )
 #add_executable(zyrec src/main.cpp
 					  #src/Capture.cpp
 					  #src/InitParam.cpp
