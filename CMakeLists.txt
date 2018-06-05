@@ -226,6 +226,13 @@ find_package(OpenCV REQUIRED)
 #link_directories(${CAFFE_LIB} #${OPENBLAS_LIB} 
 #${CUDA_LIBS}
 #)
+add_executable(image_publish_node
+    ./src/image_publish_node.cpp
+    )
+target_link_libraries(image_publish_node
+    ${catkin_LIBRARIES}
+    ${OpenCV_LIBS}
+    )
 add_executable(sudoku_node 
     ./src/sudoku_node.cpp
     ./src/sudoku/ImageProcess.cpp
