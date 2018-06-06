@@ -23,12 +23,9 @@ static sudoku::LedSolver led_solver;
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
-    try
-    {
+    try {
         cv_ptr = cv_bridge::toCvShare(msg, sensor_msgs::image_encodings::BGR8);
-    }
-    catch (cv_bridge::Exception& e)
-    {
+    } catch (cv_bridge::Exception& e) {
         ROS_ERROR("cv_bridge exception: %s", e.what());
         return;
     }
@@ -42,7 +39,7 @@ void ledRectCallback(const std_msgs::Int16MultiArray& msg)
     static Rect led_rect;
 
     led_rect = Rect(msg.data[0], msg.data[1],
-            msg.data[2], msg.data[3]);
+        msg.data[2], msg.data[3]);
 
     img = cv_ptr->image;
     if (img.empty()) {
@@ -51,10 +48,9 @@ void ledRectCallback(const std_msgs::Int16MultiArray& msg)
     }
 
     led_roi = Mat(img, led_rect);
-    if (led_solver.process(led_roi))
-    {
+    if (led_solver.process(led_roi)) {
         led_num_msg.data.clear();
-        for (uint i=0; i<5; ++i)
+        for (uint i = 0; i < 5; ++i)
             led_num_msg.data.push_back(led_solver.getResult(i));
         led_num_pub.publish(led_num_msg);
     }
@@ -73,15 +69,15 @@ int main(int argc, char* argv[])
     ROS_INFO("Start!");
     ros::NodeHandle nh;
 
-    led_num_pub 
+    led_num_pub
         = nh.advertise<std_msgs::Int16MultiArray>("buff/led_num", 1);
 
     led_solver.init("./src/buff/svm/SVM_DATA_NUM.xml");
 
     image_transport::ImageTransport it(nh);
-    image_transport::Subscriber sub 
+    image_transport::Subscriber sub
         = it.subscribe("camera/image", 1, imageCallback);
-    ros::Subscriber led_rect_sub 
+    ros::Subscriber led_rect_sub
         = nh.subscribe("buff/led_rect", 1, ledRectCallback);
     ros::Subscriber led_param_sub
         = nh.subscribe("buff/led_param", 1, ledParamCallback);

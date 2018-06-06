@@ -36,7 +36,7 @@ public:
 private:
     Ptr<SVM> svm;
     Mat kernel;
-    HOGDescriptor *hog;
+    HOGDescriptor* hog;
     int results[5];
     int RED_THRESHOLD;
 

@@ -268,10 +268,14 @@ target_link_libraries(param_node
     )
 add_executable(mnist_node
     ./src/mnist_node.cpp
+    ./src/sudoku/Mnist.cpp
+    ./src/sudoku/caffe_prototype.cpp
     )
 target_link_libraries(mnist_node 
     ${catkin_LIBRARIES}
     ${OpenCV_LIBS}
+    -lcaffe
+    glog
     )
 #add_executable(zyrec src/main.cpp
 					  #src/Capture.cpp

@@ -64,7 +64,7 @@ void sudokuAreaRatioThresOnChange(int pos)
     sudoku_param_pub.publish(sudoku_param_msg);
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     ros::init(argc, argv, "control");
     ROS_INFO("Start!");
@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
     SUDOKU_AREA_MIN = 3000;
     SUDOKU_AREA_MAX = 10000;
     SUDOKU_HW_RATIO_MIN = 20; // 2.0
-    SUDOKU_AREA_RATIO = 6; // 0.6
+    SUDOKU_AREA_RATIO = 6;    // 0.6
 
     namedWindow("params");
     createTrackbar("led red threshold", "params", &LED_RED_THRESHOLD, 255, (cv::TrackbarCallback)ledRedThresOnChange);
@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
     createTrackbar("sudoku hw ratio min", "params", &SUDOKU_HW_RATIO_MIN, 100, (cv::TrackbarCallback)sudokuHWRationMinThresOnChange);
     createTrackbar("sudoku area ration", "params", &SUDOKU_AREA_RATIO, 10, (cv::TrackbarCallback)sudokuAreaRatioThresOnChange);
 
-    while(ros::ok()) {
+    while (ros::ok()) {
         waitKey(0);
     }
 

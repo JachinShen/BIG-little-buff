@@ -14,18 +14,29 @@ void ImageProcess::init()
     SUDOKU_AREA_MIN = 3000;
     SUDOKU_AREA_MAX = 10000;
     SUDOKU_HW_RATIO_MIN = 20; // 2.0
-    SUDOKU_AREA_RATIO = 6; // 0.6
+    SUDOKU_AREA_RATIO = 6;    // 0.6
 }
 
 void ImageProcess::setParam(int index, int data)
 {
-    switch(index) {
-        case 1: SUDOKU_GRAY_THRES = data; break;
-        case 2: SUDOKU_AREA_MIN = data; break;
-        case 3: SUDOKU_AREA_MAX = data; break;
-        case 4: SUDOKU_HW_RATIO_MIN = data; break;
-        case 5: SUDOKU_AREA_RATIO = data; break;
-        default: break;
+    switch (index) {
+    case 1:
+        SUDOKU_GRAY_THRES = data;
+        break;
+    case 2:
+        SUDOKU_AREA_MIN = data;
+        break;
+    case 3:
+        SUDOKU_AREA_MAX = data;
+        break;
+    case 4:
+        SUDOKU_HW_RATIO_MIN = data;
+        break;
+    case 5:
+        SUDOKU_AREA_RATIO = data;
+        break;
+    default:
+        break;
     }
 }
 
@@ -36,12 +47,6 @@ bool ImageProcess::process(Mat& input, Rect& led_rect,
     static Mat draw;
     vector<vector<Point> > contours;
     vector<Rect> blocks;
-
-    //createTrackbar("sudoku gray threshold", "sudoku parameters", &SUDOKU_GRAY_THRES, 255);
-    //createTrackbar("sudoku area min", "sudoku parameters", &SUDOKU_AREA_MIN, 5000);
-    //createTrackbar("sudoku area max", "sudoku parameters", &SUDOKU_AREA_MAX, 10000);
-    //createTrackbar("sudoku hw ratio", "sudoku parameters", &SUDOKU_HW_RATIO_MIN, 100);
-    //createTrackbar("sudoku area ratio", "sudoku parameters", &SUDOKU_AREA_RATIO, 10);
 
     draw = input.clone();
     cvtColor(input, gray, CV_BGR2GRAY);
@@ -54,7 +59,7 @@ bool ImageProcess::process(Mat& input, Rect& led_rect,
             continue;
         float hw_ratio = (float)bound.height / bound.width;
         if (hw_ratio < 1.0)
-            hw_ratio = 1.0/hw_ratio;
+            hw_ratio = 1.0 / hw_ratio;
         //cout << "HW ratio: " << hw_ratio << endl;
         if (hw_ratio > (float)SUDOKU_HW_RATIO_MIN / 10)
             continue;

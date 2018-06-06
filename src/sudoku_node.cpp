@@ -21,7 +21,8 @@ static ros::Publisher led_rect_pub;
 static ros::Publisher handwrite_rects_pub;
 static ImageProcess image_process;
 
-void sudokuParamCallback(const std_msgs::Int16MultiArray& msg){
+void sudokuParamCallback(const std_msgs::Int16MultiArray& msg)
+{
     image_process.setParam(msg.data[0], msg.data[1]);
 }
 
@@ -55,7 +56,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
     } else {
         ROS_INFO("No sudoku Found!");
     }
-        waitKey(1);
+    waitKey(1);
 }
 
 int main(int argc, char* argv[])

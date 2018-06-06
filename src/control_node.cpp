@@ -5,14 +5,13 @@ ControlSM csm;
 void ledNumCallback(const std_msgs::Int16MultiArray& msg)
 {
     cout << "Led: " << endl;
-    for (uint i=0; i<msg.data.size(); ++i) {
+    for (uint i = 0; i < msg.data.size(); ++i) {
         csm.setLed(i, msg.data[i]);
         cout << msg.data[i] << endl;
     }
-
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     ros::init(argc, argv, "control");
     ROS_INFO("Start!");
@@ -23,7 +22,7 @@ int main(int argc, char *argv[])
 
     ros::Rate loop_rate(100);
 
-    while(ros::ok()) {
+    while (ros::ok()) {
         csm.run();
         ros::spinOnce();
         loop_rate.sleep();
