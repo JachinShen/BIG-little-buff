@@ -10,30 +10,30 @@ ImageProcess::~ImageProcess()
 
 void ImageProcess::init()
 {
-    SUDOKU_GRAY_THRES = 200;
-    SUDOKU_AREA_MIN = 3000;
-    SUDOKU_AREA_MAX = 10000;
-    SUDOKU_HW_RATIO_MIN = 20; // 2.0
-    SUDOKU_AREA_RATIO = 6;    // 0.6
+    SUDOKU_GRAY_THRES   = 200;
+    SUDOKU_AREA_MIN     = 3000;
+    SUDOKU_AREA_MAX     = 10000;
+    SUDOKU_HW_RATIO_MAX = 20; // 2.0
+    SUDOKU_AREA_RATIO   = 6;    // 0.6
 }
 
 void ImageProcess::setParam(int index, int data)
 {
     switch (index) {
     case 1:
-        SUDOKU_GRAY_THRES = data;
+        SUDOKU_GRAY_THRES   = data;
         break;
     case 2:
-        SUDOKU_AREA_MIN = data;
+        SUDOKU_AREA_MIN     = data;
         break;
     case 3:
-        SUDOKU_AREA_MAX = data;
+        SUDOKU_AREA_MAX     = data;
         break;
     case 4:
-        SUDOKU_HW_RATIO_MIN = data;
+        SUDOKU_HW_RATIO_MAX = data;
         break;
     case 5:
-        SUDOKU_AREA_RATIO = data;
+        SUDOKU_AREA_RATIO   = data;
         break;
     default:
         break;
@@ -57,12 +57,14 @@ bool ImageProcess::process(Mat& input, Rect& led_rect,
         Rect bound = boundingRect(contours[i]);
         if (bound.area() < SUDOKU_AREA_MIN || bound.area() > SUDOKU_AREA_MAX)
             continue;
+
         float hw_ratio = (float)bound.height / bound.width;
         if (hw_ratio < 1.0)
             hw_ratio = 1.0 / hw_ratio;
         //cout << "HW ratio: " << hw_ratio << endl;
-        if (hw_ratio > (float)SUDOKU_HW_RATIO_MIN / 10)
+        if (hw_ratio > (float)SUDOKU_HW_RATIO_MAX / 10)
             continue;
+
         float area = contourArea(contours[i]);
         //cout << "Area ratio: " << area/bound.area() << endl;
         if (area / bound.area() < (float)SUDOKU_AREA_RATIO / 10)

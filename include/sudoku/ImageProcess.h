@@ -32,7 +32,7 @@ private:
     int SUDOKU_GRAY_THRES;
     int SUDOKU_AREA_MIN;
     int SUDOKU_AREA_MAX;
-    int SUDOKU_HW_RATIO_MIN;
+    int SUDOKU_HW_RATIO_MAX;
     int SUDOKU_AREA_RATIO;
 };
 

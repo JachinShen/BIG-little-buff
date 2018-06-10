@@ -46,6 +46,11 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
         cout << "Hand Write Rects: " << handwrite_rects[0] << endl;
         std_msgs::Int16MultiArray handwrite_rects_msg;
         for (uint i = 0; i < handwrite_rects.size(); ++i) {
+            //cout << "x: " << handwrite_rects[i].x
+            //<< " y: " << handwrite_rects[i].y
+            //<< " width: " << handwrite_rects[i].width
+            //<< " height: "<< handwrite_rects[i].height
+            //<< endl;
             handwrite_rects_msg.data.push_back(handwrite_rects[i].x);
             handwrite_rects_msg.data.push_back(handwrite_rects[i].y);
             handwrite_rects_msg.data.push_back(handwrite_rects[i].width);

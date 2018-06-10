@@ -195,7 +195,9 @@ void Classifier::Preprocess(const cv::Mat& img,
         sample_resized.convertTo(sample_float, CV_32FC1);
 
     cv::Mat sample_normalized;
-    cv::subtract(sample_float, mean_, sample_normalized);
+    //cv::subtract(sample_float, mean_, sample_normalized);
+    sample_normalized = sample_float / 255;
+    //cout << "Data: " << sample_normalized << endl;
 
     /* This operation will write the separate BGR planes directly to the
      * input layer of the network because it is wrapped by the cv::Mat

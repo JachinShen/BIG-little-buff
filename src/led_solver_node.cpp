@@ -17,9 +17,9 @@ limitations under the License.
 
 #include "sudoku/LedSolver.h"
 
-static ros::Publisher led_num_pub;
+static ros::Publisher             led_num_pub;
 static cv_bridge::CvImageConstPtr cv_ptr;
-static sudoku::LedSolver led_solver;
+static sudoku::LedSolver          led_solver;
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
@@ -34,9 +34,9 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 void ledRectCallback(const std_msgs::Int16MultiArray& msg)
 {
     static std_msgs::Int16MultiArray led_num_msg;
-    static Mat img;
-    static Mat led_roi;
-    static Rect led_rect;
+    static Mat                       img;
+    static Mat                       led_roi;
+    static Rect                      led_rect;
 
     led_rect = Rect(msg.data[0], msg.data[1],
         msg.data[2], msg.data[3]);
@@ -52,6 +52,7 @@ void ledRectCallback(const std_msgs::Int16MultiArray& msg)
         led_num_msg.data.clear();
         for (uint i = 0; i < 5; ++i)
             led_num_msg.data.push_back(led_solver.getResult(i));
+
         led_num_pub.publish(led_num_msg);
     }
 
@@ -77,6 +78,7 @@ int main(int argc, char* argv[])
     image_transport::ImageTransport it(nh);
     image_transport::Subscriber sub
         = it.subscribe("camera/image", 1, imageCallback);
+
     ros::Subscriber led_rect_sub
         = nh.subscribe("buff/led_rect", 1, ledRectCallback);
     ros::Subscriber led_param_sub

@@ -17,7 +17,7 @@ void Mnist::process(vector<Mat>& block_roi)
         predictions.push_back(classifier.Predict(block_roi[i]));
     }
 
-    int results_value[10] = { 0 };
+    float results_value[10] = { 0 };
     for (int i = 0; i < 10; ++i) {
         results[i] = -1;
     }

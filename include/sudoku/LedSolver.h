@@ -41,7 +41,10 @@ private:
     int RED_THRESHOLD;
 
     void getRed(Mat& led_roi, Mat& led_roi_binary);
-    int predict(Mat& roi);
+    int predictSVM(Mat& roi);
+    int predictCross(Mat& roi);
+    int scanSegmentX(Mat& roi, int line_x, int y_begin, int y_end);
+    int scanSegmentY(Mat& roi, int line_y, int x_begin, int x_end);
 };
 }
 
