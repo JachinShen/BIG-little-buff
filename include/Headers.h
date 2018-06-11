@@ -27,6 +27,37 @@ using namespace cv;
 #include <std_msgs/Bool.h>
 #include <std_msgs/Int16MultiArray.h>
 
+#define PC           0
+#define MANIFOLD     1
+
+#define VIDEO_FILE   0
+#define VIDEO_CAMERA 1
+
+#define NO_SHOW      0
+#define SHOW_ALL     1
+
+#define RECORD_OFF   0
+#define RECORD_ON    1
+
+#define PI 3.14159265358979323
+
+#if defined __arm__
+#   define PLATFORM MANIFOLD
+#else
+#   define PLATFORM PC
+#endif
+
+#if PLATFORM == PC
+#   define VIDEO         VIDEO_FILE
+#   define DRAW          SHOW_ALL
+#elif PLATFORM == MANIFOLD
+#   define VIDEO         VIDEO_CAMERA
+#   define DRAW          NO_SHOW
+#endif
+
+#define RECORD RECORD_OFF
+
+
 using std::copy;
 using std::cout;
 using std::endl;

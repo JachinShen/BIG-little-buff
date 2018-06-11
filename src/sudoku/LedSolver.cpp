@@ -66,24 +66,30 @@ void LedSolver::getRed(Mat& led_roi, Mat& led_roi_binary)
 bool LedSolver::process(Mat& led_roi)
 {
     static Mat led_roi_binary;
+#if DRAW == SHOW_ALL
     static Mat draw;
+    char window_name[15] = "segment roi1";
+#endif
     vector<vector<Point> > contours;
     vector<Rect> digits;
 
+#if DRAW == SHOW_ALL
     draw = led_roi.clone();
+#endif
 
     getRed(led_roi, led_roi_binary);
     findContours(led_roi_binary, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
     for (uint i = 0; i < contours.size(); ++i) {
         Rect bound = boundingRect(contours[i]);
         if (bound.x < 10 || bound.x + bound.width > led_roi.cols - 10
-            || bound.y < 10 || bound.y + bound.height > led_roi.rows - 10)
+            || bound.y < 10 || bound.y + bound.height > led_roi.rows)
             continue;
-        if (bound.area() < 20)
+        if (bound.area() < 100)
             continue;
         float hw_ratio = (float)bound.height / bound.width;
         if (hw_ratio < 1.0)
-            hw_ratio = 1.0 / hw_ratio;
+            continue;
+            //hw_ratio = 1.0 / hw_ratio;
         //cout << "HW ratio: " << hw_ratio << endl;
         if (hw_ratio < 1.3 || hw_ratio > 10)
             continue;
@@ -92,11 +98,12 @@ bool LedSolver::process(Mat& led_roi)
 
     sort(digits.begin(), digits.end(), compareRect);
 
+#if DRAW == SHOW_ALL
     for (uint i = 0; i < digits.size(); ++i) {
         rectangle(draw, digits[i], Scalar(255, 0, 0), 2);
     }
-
     imshow("draw", draw);
+#endif
 
     if (digits.size() > 5)
         return false;
@@ -114,10 +121,14 @@ bool LedSolver::process(Mat& led_roi)
         Mat M2 = getRotationMatrix2D(center, 5, 1);
         warpAffine(roi, roi, M2, roi.size(), 1, 0, 0);
         results[i] = predictCross(roi);
-        if (results[i] == -1) {
-            roi = ~roi;
-            results[i] = predictSVM(roi);
-        }
+#if DRAW == SHOW_ALL
+        window_name[11] = i + 1 + '0';
+        imshow(window_name, roi);
+#endif
+        //if (results[i] == -1) {
+            //roi = (~led_roi_binary)(digits[i]).clone();
+            //results[i] = predictSVM(roi);
+        //}
     }
 
     return true;
@@ -175,47 +186,35 @@ int LedSolver::predictCross(Mat& roi)
     //for (int i=0; i<7; ++i) {
     //cout << "segment " << i << " hit: " << segment_hit[i] << endl;
     //}
-    imshow("segment roi", roi);
-    if (segment_hit[0] > 3)
+    if (segment_hit[0] > 2)
         segment |= SEGMENT_F;
-    if (segment_hit[1] > 3)
+    if (segment_hit[1] > 2)
         segment |= SEGMENT_B;
-    if (segment_hit[2] > 3)
+    if (segment_hit[2] > 2)
         segment |= SEGMENT_E;
-    if (segment_hit[3] > 3)
+    if (segment_hit[3] > 2)
         segment |= SEGMENT_C;
-    if (segment_hit[4] > 3)
+    if (segment_hit[4] > 2)
         segment |= SEGMENT_A;
-    if (segment_hit[5] > 3)
+    if (segment_hit[5] > 2)
         segment |= SEGMENT_G;
-    if (segment_hit[6] > 3)
+    if (segment_hit[6] > 2)
         segment |= SEGMENT_D;
 
     //cout << "Segment: " << segment << endl;
 
     switch (segment) {
-    case 0x3f:
-        return 0;
-    case 0x06:
-        return 1;
-    case 0x5b:
-        return 2;
-    case 0x4f:
-        return 3;
-    case 0x66:
-        return 4;
-    case 0x6d:
-        return 5;
-    case 0x7d:
-        return 6;
-    case 0x07:
-        return 7;
-    case 0x7f:
-        return 8;
-    case 0x6f:
-        return 9;
-    default:
-        return -1;
+    case 0x3f: return 0;
+    case 0x06: return 1;
+    case 0x5b: return 2;
+    case 0x4f: return 3;
+    case 0x66: return 4;
+    case 0x6d: return 5;
+    case 0x7d: return 6;
+    case 0x07: return 7;
+    case 0x7f: return 8;
+    case 0x6f: return 9;
+    default: return -1;
     }
 }
 
@@ -227,7 +226,7 @@ int LedSolver::predictSVM(Mat& roi)
     resize(roi, roi, Size(20, 20));
     Mat inner = Mat::ones(28, 28, CV_8UC1) + 254;
     roi.copyTo(inner(Rect(4, 4, 20, 20)));
-    imshow("inner", inner);
+    //imshow("inner", inner);
     hog->compute(inner, descriptors, Size(1, 1), Size(0, 0));
 
     Mat SVMPredictMat = Mat(1, (int)descriptors.size(), CV_32FC1);

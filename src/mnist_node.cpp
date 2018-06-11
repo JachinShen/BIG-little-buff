@@ -1,8 +1,8 @@
-#include "sudoku/Mnist.h"
+#include "sudoku/DnnClassifier.h"
 
 static ros::Publisher             mnist_num_pub;
 static cv_bridge::CvImageConstPtr cv_ptr;
-static Mnist                      mnist_classifier;
+static DnnClassifier                      mnist_classifier;
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {

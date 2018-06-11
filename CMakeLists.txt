@@ -235,7 +235,7 @@ target_link_libraries(image_publish_node
     )
 add_executable(sudoku_node 
     ./src/sudoku_node.cpp
-    ./src/sudoku/ImageProcess.cpp
+    ./src/sudoku/BlockSplit.cpp
     ./src/sudoku/RectSort.cpp
     )
 target_link_libraries(sudoku_node 
@@ -268,10 +268,21 @@ target_link_libraries(param_node
     )
 add_executable(mnist_node
     ./src/mnist_node.cpp
-    ./src/sudoku/Mnist.cpp
+    ./src/sudoku/DnnClassifier.cpp
     ./src/sudoku/caffe_prototype.cpp
     )
 target_link_libraries(mnist_node 
+    ${catkin_LIBRARIES}
+    ${OpenCV_LIBS}
+    -lcaffe
+    glog
+    )
+add_executable(fire_node
+    ./src/fire_node.cpp
+    ./src/sudoku/DnnClassifier.cpp
+    ./src/sudoku/caffe_prototype.cpp
+    )
+target_link_libraries(fire_node 
     ${catkin_LIBRARIES}
     ${OpenCV_LIBS}
     -lcaffe
@@ -282,11 +293,11 @@ target_link_libraries(mnist_node
 					  #src/InitParam.cpp
 					  #src/TString.cpp
 					  #src/sudoku_new/HandWritingSolver.cpp
-					  #src/sudoku_new/ImageProcess.cpp
+					  #src/sudoku_new/BlockSplit.cpp
 					  #src/sudoku_new/LedNumberSolver.cpp
 					  #src/sudoku_new/LogicProcess.cpp
 					   #src/sudoku_new/caffe_prototype.cpp
-					  #src/sudoku_old/ImageProcess.cpp)
+					  #src/sudoku_old/BlockSplit.cpp)
 #add_dependencies(zyrec uart_node_generate_messages_cpp
 #)
 #target_link_libraries(zyrec

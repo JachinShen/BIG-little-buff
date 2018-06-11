@@ -19,6 +19,13 @@ void mnistNumCallback(const std_msgs::Int16MultiArray& msg)
     }
 }
 
+void fireNumCallback(const std_msgs::Int16MultiArray& msg)
+{
+    cout << "Fire: " << endl;
+    for (uint i = 0; i < msg.data.size(); ++i) {
+        cout << msg.data[i] << endl;
+    }
+}
 int main(int argc, char* argv[])
 {
     ros::init(argc, argv, "control");
@@ -29,6 +36,8 @@ int main(int argc, char* argv[])
         = nh.subscribe("buff/led_num", 1, ledNumCallback);
     ros::Subscriber mnist_num_sub
         = nh.subscribe("buff/mnist_num", 1, mnistNumCallback);
+    ros::Subscriber fire_num_sub
+        = nh.subscribe("buff/fire_num", 1, fireNumCallback);
 
     ros::Rate loop_rate(100);
 
