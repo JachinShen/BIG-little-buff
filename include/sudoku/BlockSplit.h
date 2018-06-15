@@ -22,14 +22,28 @@ public:
     BlockSplit();
     ~BlockSplit();
     void init();
-    bool processMnist(Mat& input, Rect& led_rect, vector<Rect>& handwrite_rects);
-    bool processFire(Mat& input, Rect& led_rect, vector<Rect>& handwrite_rects);
+    //bool processMnist(Mat& input, Rect& led_rect, vector<Rect>& handwrite_rects);
+    bool process(Mat& input, Rect& led_rect, Rect& sudoku_rect);
     void setParam(int index, int data);
+    //void createSudokuParamTrackbar(char * window_name, cv::TrackbarCallback * callbackFunc);
+    enum SudokuParam {
+        GRAY_THRES,
+        AREA_MIN,
+        AREA_MAX,
+        HW_RATIO_MIN,
+        HW_RATIO_MAX,
+        AREA_RATIO,
+        PARAM_SIZE
+    };
 
+    
 private:
-    int SUDOKU_GRAY_THRES;
-    int SUDOKU_AREA_MIN;
-    int SUDOKU_AREA_MAX;
-    int SUDOKU_HW_RATIO_MAX;
-    int SUDOKU_AREA_RATIO;
+    int param[PARAM_SIZE];
+
+    //int SUDOKU_GRAY_THRES;
+    //int SUDOKU_AREA_MIN;
+    //int SUDOKU_AREA_MAX;
+    //int SUDOKU_HW_RATIO_MIN;
+    //int SUDOKU_HW_RATIO_MAX;
+    //int SUDOKU_AREA_RATIO;
 };

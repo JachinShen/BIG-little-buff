@@ -35,6 +35,7 @@ void LedSolver::init(const char* file)
         results[i] = -1;
 
     RED_THRESHOLD = 128;
+    GRAY_THRESHOLD = 128;
 }
 
 LedSolver::~LedSolver()
@@ -43,9 +44,13 @@ LedSolver::~LedSolver()
         delete hog;
 }
 
-void LedSolver::setRedThreshold(int thres)
+void LedSolver::setParam(int index, int value)
 {
-    RED_THRESHOLD = thres;
+    switch(index) {
+        case 1: RED_THRESHOLD = value; break;
+        case 2: GRAY_THRESHOLD = value; break;
+        default: break;
+    }
 }
 
 void LedSolver::getRed(Mat& led_roi, Mat& led_roi_binary)
@@ -55,10 +60,13 @@ void LedSolver::getRed(Mat& led_roi, Mat& led_roi_binary)
     static Mat led_roi_gray;
 
     cvtColor(led_roi, led_roi_gray, COLOR_BGR2GRAY);
-    threshold(led_roi_gray, led_roi_binary, RED_THRESHOLD, 255, THRESH_BINARY);
-    //split(led_roi, bgr_split);
-    //led_roi_red = 2 * bgr_split[2] - bgr_split[1] - bgr_split[0];
-    //threshold(led_roi_red, led_roi_binary, RED_THRESHOLD, 255, THRESH_BINARY);
+    threshold(led_roi_gray, led_roi_gray, GRAY_THRESHOLD, 255, THRESH_BINARY);
+
+    split(led_roi, bgr_split);
+    led_roi_red = 2 * bgr_split[2] - bgr_split[1] - bgr_split[0];
+    threshold(led_roi_red, led_roi_red, RED_THRESHOLD, 255, THRESH_BINARY);
+
+    led_roi_binary = led_roi_red & led_roi_gray;
     dilate(led_roi_binary, led_roi_binary, kernel);
     imshow("Led Red Binary: ", led_roi_binary);
 }

@@ -61,7 +61,7 @@ void ledRectCallback(const std_msgs::Int16MultiArray& msg)
 
 void ledParamCallback(const std_msgs::Int16MultiArray& msg)
 {
-    led_solver.setRedThreshold(msg.data[0]);
+    led_solver.setParam(msg.data[0], msg.data[1]);
 }
 
 int main(int argc, char* argv[])

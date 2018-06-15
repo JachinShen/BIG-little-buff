@@ -31,12 +31,11 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
     static Mat img, gray, binary;
     Rect led_rect;
-    vector<Rect> mnist_rects;
+    Rect sudoku_rect;
     img = cv_bridge::toCvShare(msg, "bgr8")->image;
     if (img.empty())
         return;
-    //block_split.processFire(img, led_rect, mnist_rects);
-    if (block_split.processFire(img, led_rect, mnist_rects)) {
+    if (block_split.process(img, led_rect, sudoku_rect)) {
         cout << "Led Rect: " << led_rect << endl;
         std_msgs::Int16MultiArray led_rect_msg;
         led_rect_msg.data.push_back(led_rect.x);
@@ -45,17 +44,14 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
         led_rect_msg.data.push_back(led_rect.height);
         led_rect_pub.publish(led_rect_msg);
 
-        cout << "Hand Write Rects: " << endl;
-        std_msgs::Int16MultiArray fire_rects_msg;
-        for (uint i = 0; i < mnist_rects.size(); ++i) {
-            cout << mnist_rects[i] << endl;
-            fire_rects_msg.data.push_back(mnist_rects[i].x);
-            fire_rects_msg.data.push_back(mnist_rects[i].y);
-            fire_rects_msg.data.push_back(mnist_rects[i].width);
-            fire_rects_msg.data.push_back(mnist_rects[i].height);
-        }
-        fire_rects_pub.publish(fire_rects_msg);
-
+        cout << "Sudoku Rects: " << endl;
+        std_msgs::Int16MultiArray sudoku_rect_msg;
+        sudoku_rect_msg.data.push_back(sudoku_rect.x);
+        sudoku_rect_msg.data.push_back(sudoku_rect.y);
+        sudoku_rect_msg.data.push_back(sudoku_rect.width);
+        sudoku_rect_msg.data.push_back(sudoku_rect.height);
+        fire_rects_pub.publish(sudoku_rect_msg);
+        mnist_rects_pub.publish(sudoku_rect_msg);
     } else {
         ROS_INFO("No sudoku Found!");
     }

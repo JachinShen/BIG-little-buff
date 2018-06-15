@@ -31,7 +31,7 @@ public:
     void init(const char* file);
     bool process(Mat& led_roi);
     int getResult(int index);
-    void setRedThreshold(int thres);
+    void setParam(int index, int value);
 
 private:
     Ptr<SVM> svm;
@@ -39,6 +39,7 @@ private:
     HOGDescriptor* hog;
     int results[5];
     int RED_THRESHOLD;
+    int GRAY_THRESHOLD;
 
     void getRed(Mat& led_roi, Mat& led_roi_binary);
     int predictSVM(Mat& roi);

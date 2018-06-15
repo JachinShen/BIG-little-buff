@@ -288,6 +288,23 @@ target_link_libraries(fire_node
     -lcaffe
     glog
     )
+add_executable(aim_node
+    ./src/aim_node.cpp
+    ./src/kcftracker.cpp
+    ./src/fhog.cpp
+    )
+target_link_libraries(aim_node 
+    ${catkin_LIBRARIES}
+    ${OpenCV_LIBS}
+    )
+add_executable(serial_node
+    ./src/serial_node.cpp
+    ./src/Serial.cpp
+    )
+target_link_libraries(serial_node 
+    ${catkin_LIBRARIES}
+    ${OpenCV_LIBS}
+    )
 #add_executable(zyrec src/main.cpp
 					  #src/Capture.cpp
 					  #src/InitParam.cpp
