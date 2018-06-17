@@ -44,7 +44,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
         led_rect_msg.data.push_back(led_rect.height);
         led_rect_pub.publish(led_rect_msg);
 
-        cout << "Sudoku Rects: " << endl;
+        cout << "Sudoku Rects: " << sudoku_rect << endl;
         std_msgs::Int16MultiArray sudoku_rect_msg;
         sudoku_rect_msg.data.push_back(sudoku_rect.x);
         sudoku_rect_msg.data.push_back(sudoku_rect.y);

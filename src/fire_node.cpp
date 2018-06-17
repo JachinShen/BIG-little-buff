@@ -19,8 +19,8 @@ void fireRectsCallback(const std_msgs::Int16MultiArray& msg)
     static Mat img, gray, binary, sudoku_roi;
     static vector<Mat> fire_roi;
     static Rect sudoku_rect;
+    vector<Rect> fire_rect;
     vector<vector<Point> > contours;
-    //static vector<Rect> fire_rect;
 
     img = cv_ptr->image;
     if (img.empty()) {
@@ -28,24 +28,30 @@ void fireRectsCallback(const std_msgs::Int16MultiArray& msg)
         return;
     }
     sudoku_rect = Rect(msg.data[0], msg.data[1], msg.data[2], msg.data[3]);
+    cout << "Sudoku Rect: " << sudoku_rect << endl;
     sudoku_roi = img(sudoku_rect);
-    imshow("sudoku roi", sudoku_roi);
     cvtColor(sudoku_roi, gray, CV_BGR2GRAY);
     threshold(gray, binary, 180, 255, CV_THRESH_BINARY);
+    imshow("sudoku roi", sudoku_roi);
 
-    fire_roi.clear();
     findContours(binary.clone(), contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
     for (uint i = 0; i < contours.size(); ++i) {
         Rect bound = boundingRect(contours[i]);
         if (bound.area() < 500)
             continue;
-        Mat roi = (binary(Rect(sudoku_rect.tl()+bound.tl(), bound.size())));
+        fire_rect.push_back(bound);
+    }
+    sort(fire_rect.begin(), fire_rect.end(), compareRect);
+
+    fire_roi.clear();
+    for (uint i=0; i<fire_rect.size(); ++i) {
+        //Mat roi = (binary(Rect(sudoku_rect.tl()+fire_rect[i].tl(), fire_rect[i].size())));
+        Mat roi = (binary(fire_rect[i]));
         int left_right_gap = (roi.rows - roi.cols) / 2 + 5;
         copyMakeBorder(roi, roi, 5, 5, left_right_gap, left_right_gap, BORDER_CONSTANT);
         resize(roi, roi, Size(28, 28));
         fire_roi.push_back(roi);
     }
-
     fire_classifier.process(fire_roi);
 
     imshow("roi 1", fire_roi[0]);

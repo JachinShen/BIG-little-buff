@@ -270,6 +270,7 @@ add_executable(mnist_node
     ./src/mnist_node.cpp
     ./src/sudoku/DnnClassifier.cpp
     ./src/sudoku/caffe_prototype.cpp
+    ./src/sudoku/RectSort.cpp
     )
 target_link_libraries(mnist_node 
     ${catkin_LIBRARIES}
@@ -281,6 +282,7 @@ add_executable(fire_node
     ./src/fire_node.cpp
     ./src/sudoku/DnnClassifier.cpp
     ./src/sudoku/caffe_prototype.cpp
+    ./src/sudoku/RectSort.cpp
     )
 target_link_libraries(fire_node 
     ${catkin_LIBRARIES}

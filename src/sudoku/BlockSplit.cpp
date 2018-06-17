@@ -177,6 +177,8 @@ bool BlockSplit::process(Mat& input, Rect& led_rect,
     sudoku_rect = Rect(whole_block_x + 10, whole_block_y,
             whole_block_width - 20, whole_block_height);
 
+    //cout << "Sudoku Rect: " << sudoku_rect << endl;
+
     //Mat block_roi = binary(whole_block);
     //imshow("block roi", block_roi);
 
@@ -219,8 +221,8 @@ bool BlockSplit::process(Mat& input, Rect& led_rect,
     ////int top_y = blocks[0].y;
     ////int top_width = blocks[blocks.size()-1].x - top_x;
 
-    //led_rect = Rect(whole_block_x, 0, 
-            //whole_block_width, whole_block_y);
+    led_rect = Rect(whole_block_x, 0, 
+            whole_block_width, whole_block_y);
 
     //copy(blocks.begin(), blocks.end(), back_inserter(handwrite_rects));
 
