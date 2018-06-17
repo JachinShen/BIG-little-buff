@@ -33,13 +33,29 @@ public:
     int getResult(int index);
     void setParam(int index, int value);
 
+	enum LedParam{
+		RED_THRESHOLD,
+		GRAY_THRESHOLD,
+		BOUND_AREA_MAX,
+		HW_RATIO_MIN,
+		HW_RATIO_MAX,
+		HW_RATIO_FOR_DIGIT_ONE,
+		ROTATION_DEGREE,
+		PARAM_SIZE
+	};
+
+
+
 private:
     Ptr<SVM> svm;
     Mat kernel;
     HOGDescriptor* hog;
     int results[5];
-    int RED_THRESHOLD;
-    int GRAY_THRESHOLD;
+	
+	int param[PARAM_SIZE];
+
+    //int RED_THRESHOLD;
+    //int GRAY_THRESHOLD;
 
     void getRed(Mat& led_roi, Mat& led_roi_binary);
     int predictSVM(Mat& roi);
