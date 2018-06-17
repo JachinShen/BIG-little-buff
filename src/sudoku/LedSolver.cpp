@@ -17,11 +17,9 @@ limitations under the License.
 
 #include "sudoku/LedSolver.h"
 
-namespace sudoku {
-
 LedSolver::LedSolver()
 {
-    hog = NULL;
+    //hog = NULL;
 }
 
 void LedSolver::init(const char* file)
@@ -29,18 +27,18 @@ void LedSolver::init(const char* file)
     //svm    = SVM::create();
     //svm    = svm->load(file);
     kernel = getStructuringElement(MORPH_RECT, Size(3, 3));
-    hog    = new cv::HOGDescriptor(cvSize(28, 28), cvSize(14, 14), cvSize(7, 7), cvSize(7, 7), 9);
+    //hog    = new cv::HOGDescriptor(cvSize(28, 28), cvSize(14, 14), cvSize(7, 7), cvSize(7, 7), 9);
 
     for (int i = 0; i < 5; ++i)
         results[i] = -1;
 
-	param[RED_THRESHOLD] = 128;
-	param[GRAY_THRESHOLD] =  128;
-	param[BOUND_AREA_MAX] =  100;
-	param[HW_RATIO_MIN] =  130;
-	param[HW_RATIO_MAX] =  1000;
-	param[HW_RATIO_FOR_DIGIT_ONE] =  250;
-	param[ROTATION_DEGREE] =  5;
+	param[RED_THRESHOLD]          = 128;
+	param[GRAY_THRESHOLD]         = 128;
+	param[BOUND_AREA_MAX]         = 100;
+	param[HW_RATIO_MIN]           = 130;
+	param[HW_RATIO_MAX]           = 1000;
+	param[HW_RATIO_FOR_DIGIT_ONE] = 250;
+	param[ROTATION_DEGREE]        = 5;
 
     //RED_THRESHOLD = 128;
     //GRAY_THRESHOLD = 128;
@@ -48,8 +46,8 @@ void LedSolver::init(const char* file)
 
 LedSolver::~LedSolver()
 {
-    if (hog != NULL)
-        delete hog;
+    //if (hog != NULL)
+        //delete hog;
 }
 
 void LedSolver::setParam(int index, int value)
@@ -240,26 +238,25 @@ int LedSolver::predictCross(Mat& roi)
     }
 }
 
-int LedSolver::predictSVM(Mat& roi)
-{
-    vector<float> descriptors;
-    //dilate(roi, roi, kernel);
-    //erode(roi, roi, kernel);
-    resize(roi, roi, Size(20, 20));
-    Mat inner = Mat::ones(28, 28, CV_8UC1) + 254;
-    roi.copyTo(inner(Rect(4, 4, 20, 20)));
-    //imshow("inner", inner);
-    hog->compute(inner, descriptors, Size(1, 1), Size(0, 0));
+//int LedSolver::predictSVM(Mat& roi)
+//{
+    //vector<float> descriptors;
+    ////dilate(roi, roi, kernel);
+    ////erode(roi, roi, kernel);
+    //resize(roi, roi, Size(20, 20));
+    //Mat inner = Mat::ones(28, 28, CV_8UC1) + 254;
+    //roi.copyTo(inner(Rect(4, 4, 20, 20)));
+    ////imshow("inner", inner);
+    //hog->compute(inner, descriptors, Size(1, 1), Size(0, 0));
 
-    Mat SVMPredictMat = Mat(1, (int)descriptors.size(), CV_32FC1);
-    memcpy(SVMPredictMat.data, descriptors.data(), descriptors.size() * sizeof(float));
-    return (svm->predict(SVMPredictMat));
-}
+    //Mat SVMPredictMat = Mat(1, (int)descriptors.size(), CV_32FC1);
+    //memcpy(SVMPredictMat.data, descriptors.data(), descriptors.size() * sizeof(float));
+    //return (svm->predict(SVMPredictMat));
+//}
 
 int LedSolver::getResult(int index)
 {
     if (index >= 5 || index < 0)
         return -1;
     return results[index];
-}
 }

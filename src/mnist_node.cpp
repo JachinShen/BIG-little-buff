@@ -16,25 +16,42 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 
 void handwriteRectsCallback(const std_msgs::Int16MultiArray& msg)
 {
-    static Mat img, gray, binary;
+    static Mat img, img_roi, gray, binary;
     static vector<Mat> mnist_roi;
-    //static vector<Rect> mnist_rect;
+    static Rect sudoku_rect;
+    static char window_name[] = "roi x";
+    vector<Rect> mnist_rect;
+    vector<vector<Point> > contours;
 
     img = cv_ptr->image;
     if (img.empty()) {
         cout << "Empty Image" << endl;
         return;
     }
-    cvtColor(img, gray, CV_BGR2GRAY);
-    threshold(gray, binary, 128, 255, CV_THRESH_BINARY_INV);
+    sudoku_rect = Rect(msg.data[0], msg.data[1], msg.data[2], msg.data[3]);
+    cout << "Sudoku Rect: " << sudoku_rect << endl;
+    img_roi = img(sudoku_rect);
+    cvtColor(img_roi, gray, CV_BGR2GRAY);
+    threshold(gray, binary, 128, 255, CV_THRESH_BINARY);
+
+    findContours(binary.clone(), contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+    for (uint i = 0; i < contours.size(); ++i) {
+        Rect bound = boundingRect(contours[i]);
+        if (bound.area() < 500)
+            continue;
+        mnist_rect.push_back(bound);
+    }
+
+    sort(mnist_rect.begin(), mnist_rect.end(), compareRect);
 
     mnist_roi.clear();
 
-    for (uint i = 0; i < msg.data.size(); i += 4) {
-        Mat roi = (Mat(binary,
-            Rect(msg.data[i] + 10, msg.data[i + 1] + 5,
-                msg.data[i + 2] - 20, msg.data[i + 3] - 10))
-                       .clone());
+    for (uint i = 0; i < mnist_rect.size(); ++i) {
+        //Mat roi = (Mat(binary,
+            //Rect(msg.data[i] + 10, msg.data[i + 1] + 5,
+                //msg.data[i + 2] - 20, msg.data[i + 3] - 10))
+                       //.clone());
+        Mat roi = (~binary)(mnist_rect[i]);
         //copyMakeBorder(roi, roi, 15, 15, 15, 15, BORDER_CONSTANT);
         resize(roi, roi, Size(28, 28));
         mnist_roi.push_back(roi);
@@ -42,15 +59,10 @@ void handwriteRectsCallback(const std_msgs::Int16MultiArray& msg)
 
     mnist_classifier.process(mnist_roi);
 
-    imshow("roi 1", mnist_roi[0]);
-    imshow("roi 2", mnist_roi[1]);
-    imshow("roi 3", mnist_roi[2]);
-    imshow("roi 4", mnist_roi[3]);
-    imshow("roi 5", mnist_roi[4]);
-    imshow("roi 6", mnist_roi[5]);
-    imshow("roi 7", mnist_roi[6]);
-    imshow("roi 8", mnist_roi[7]);
-    imshow("roi 9", mnist_roi[8]);
+    for (uint i=0; i<mnist_roi.size(); ++i) {
+        window_name[4] = i + 1 + '0';
+        imshow(window_name, mnist_roi[i]);
+    }
     waitKey(1);
 }
 
@@ -80,7 +92,7 @@ int main(int argc, char* argv[])
     image_transport::Subscriber sub
         = it.subscribe("camera/image", 1, imageCallback);
     ros::Subscriber handwrite_rects_sub
-        = nh.subscribe("buff/handwrite_rects", 1, handwriteRectsCallback);
+        = nh.subscribe("buff/mnist_rects", 1, handwriteRectsCallback);
     ros::Subscriber led_num_sub
         = nh.subscribe("buff/led_num", 1, ledNumCallback);
     ros::Subscriber mnist_param_sub

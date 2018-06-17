@@ -28,7 +28,7 @@ void fireRectsCallback(const std_msgs::Int16MultiArray& msg)
         return;
     }
     sudoku_rect = Rect(msg.data[0], msg.data[1], msg.data[2], msg.data[3]);
-    cout << "Sudoku Rect: " << sudoku_rect << endl;
+    //cout << "Sudoku Rect: " << sudoku_rect << endl;
     sudoku_roi = img(sudoku_rect);
     cvtColor(sudoku_roi, gray, CV_BGR2GRAY);
     threshold(gray, binary, 180, 255, CV_THRESH_BINARY);

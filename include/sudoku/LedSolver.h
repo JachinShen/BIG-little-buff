@@ -20,9 +20,7 @@ limitations under the License.
 
 #include "Headers.h"
 
-using namespace cv::ml;
-
-namespace sudoku {
+//using namespace cv::ml;
 
 class LedSolver {
 public:
@@ -47,9 +45,9 @@ public:
 
 
 private:
-    Ptr<SVM> svm;
+    //Ptr<SVM> svm;
     Mat kernel;
-    HOGDescriptor* hog;
+    //HOGDescriptor* hog;
     int results[5];
 	
 	int param[PARAM_SIZE];
@@ -58,11 +56,9 @@ private:
     //int GRAY_THRESHOLD;
 
     void getRed(Mat& led_roi, Mat& led_roi_binary);
-    int predictSVM(Mat& roi);
+    //int predictSVM(Mat& roi);
     int predictCross(Mat& roi);
     int scanSegmentX(Mat& roi, int line_x, int y_begin, int y_end);
     int scanSegmentY(Mat& roi, int line_y, int x_begin, int x_end);
 };
-}
-
 #endif /* ifndef __sudoku__LedSolver__ */

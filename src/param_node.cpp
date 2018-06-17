@@ -2,8 +2,6 @@
 #include "sudoku/BlockSplit.h"
 #include "sudoku/LedSolver.h"
 
-using namespace sudoku;
-
 static ros::Publisher led_param_pub;
 static ros::Publisher sudoku_param_pub;
 static std_msgs::Int16MultiArray led_param_msg;
@@ -47,43 +45,43 @@ int sudokuParamMax(int index)
     return sudoku_param_max[index];
 }
 
-
 static int LED_PARAM[LedSolver::PARAM_SIZE] = {
-	128,
-	128,
-	100,
-	130,
-	1000,
-	250,
-	5
+    128,
+    128,
+    100,
+    130,
+    1000,
+    250,
+    5
 };
 
-string ledParamEnumToStr(int index){
-	static string led_param_enum_to_str[LedSolver::PARAM_SIZE] = {
-		"led red threshold",
-		"led gray threshold",
-		"led bound area max",
-		"led hw ratio Min",
-		"led hw ratio Max",
-		"led hw ratio for digit one",
-		"led rotation degree"
-	};
-	return led_param_enum_to_str[index];
+string ledParamEnumToStr(int index)
+{
+    static string led_param_enum_to_str[LedSolver::PARAM_SIZE] = {
+        "led red threshold",
+        "led gray threshold",
+        "led bound area max",
+        "led hw ratio Min",
+        "led hw ratio Max",
+        "led hw ratio for digit one",
+        "led rotation degree"
+    };
+    return led_param_enum_to_str[index];
 }
 
-int ledParamMax(int index){
-	static int led_param_max[LedSolver::PARAM_SIZE] = {
-		255,
-		255,
-		200,
-		250,
-		2000,
-		500,
-		10
-	};
-	return led_param_max[index];
+int ledParamMax(int index)
+{
+    static int led_param_max[LedSolver::PARAM_SIZE] = {
+        255,
+        255,
+        200,
+        250,
+        2000,
+        500,
+        10
+    };
+    return led_param_max[index];
 }
-
 
 void advertiseParam(int index, int value, ros::Publisher& pub, std_msgs::Int16MultiArray& msg)
 {
@@ -95,7 +93,7 @@ void advertiseParam(int index, int value, ros::Publisher& pub, std_msgs::Int16Mu
 
 //void advertiseLedParam(int index, int value)
 //{
- //   advertiseParam(index, value, led_param_pub, led_param_msg);
+//   advertiseParam(index, value, led_param_pub, led_param_msg);
 //}
 
 //void ledRedThresOnChange(int pos)
@@ -112,8 +110,8 @@ void advertiseParam(int index, int value, ros::Publisher& pub, std_msgs::Int16Mu
 
 //void advertiseSudokuParam(int index, int value)
 //{
-    //cout << "Index: " << index
-    //<< "Value: " << value << endl;
+//cout << "Index: " << index
+//<< "Value: " << value << endl;
 //    sudoku_param_msg.data.clear();
 //    sudoku_param_msg.data.push_back(index);
 //    sudoku_param_msg.data.push_back(value);
@@ -132,13 +130,14 @@ void sudokuOnChange(int pos, void* id)
     int* value = (int*)id;
     *value = pos;
     //advertiseSudokuParam(value - SUDOKU_PARAM, pos);
-	advertiseParam(value - SUDOKU_PARAM, pos, sudoku_param_pub, 	sudoku_param_msg );
+    advertiseParam(value - SUDOKU_PARAM, pos, sudoku_param_pub, sudoku_param_msg);
 }
 
-void ledOnChange(int pos, void* id){
-	int* value = (int*)id;
+void ledOnChange(int pos, void* id)
+{
+    int* value = (int*)id;
     *value = pos;
-	advertiseParam(value - LED_PARAM, pos, led_param_pub, 	led_param_msg );
+    advertiseParam(value - LED_PARAM, pos, led_param_pub, led_param_msg);
 }
 
 void updateAllParam()
@@ -146,11 +145,11 @@ void updateAllParam()
     //advertiseLedParam(1, LED_RED_THRESHOLD);
     //advertiseLedParam(2, LED_GRAY_THRESHOLD);
     for (int i = 0; i < BlockSplit::PARAM_SIZE; ++i) {
-        advertiseParam(i, SUDOKU_PARAM[i], 	sudoku_param_pub, 	sudoku_param_msg );
+        advertiseParam(i, SUDOKU_PARAM[i], sudoku_param_pub, sudoku_param_msg);
     }
-	for(int i = 0; i < LedSolver::PARAM_SIZE; i++){
-		advertiseParam(i, LED_PARAM[i], 	led_param_pub, 		led_param_msg);
-	}
+    for (int i = 0; i < LedSolver::PARAM_SIZE; i++) {
+        advertiseParam(i, LED_PARAM[i], led_param_pub, led_param_msg);
+    }
 }
 
 int main(int argc, char* argv[])
@@ -177,12 +176,12 @@ int main(int argc, char* argv[])
             SUDOKU_PARAM + i);
     }
 
-	for(int i = 0; i < LedSolver::PARAM_SIZE; i++){
-		createTrackbar(ledParamEnumToStr(i), "params",
-		LED_PARAM + i, ledParamMax(i),
-		(cv::TrackbarCallback)ledOnChange,
-		LED_PARAM + i);
-	}
+    for (int i = 0; i < LedSolver::PARAM_SIZE; i++) {
+        createTrackbar(ledParamEnumToStr(i), "params",
+            LED_PARAM + i, ledParamMax(i),
+            (cv::TrackbarCallback)ledOnChange,
+            LED_PARAM + i);
+    }
 
     updateAllParam();
 

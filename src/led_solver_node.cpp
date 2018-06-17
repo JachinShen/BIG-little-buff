@@ -19,7 +19,7 @@ limitations under the License.
 
 static ros::Publisher             led_num_pub;
 static cv_bridge::CvImageConstPtr cv_ptr;
-static sudoku::LedSolver          led_solver;
+static LedSolver          led_solver;
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
