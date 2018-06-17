@@ -26,16 +26,24 @@ LedSolver::LedSolver()
 
 void LedSolver::init(const char* file)
 {
-    svm    = SVM::create();
-    svm    = svm->load(file);
+    //svm    = SVM::create();
+    //svm    = svm->load(file);
     kernel = getStructuringElement(MORPH_RECT, Size(3, 3));
     hog    = new cv::HOGDescriptor(cvSize(28, 28), cvSize(14, 14), cvSize(7, 7), cvSize(7, 7), 9);
 
     for (int i = 0; i < 5; ++i)
         results[i] = -1;
 
-    RED_THRESHOLD = 128;
-    GRAY_THRESHOLD = 128;
+	param[RED_THRESHOLD] = 128;
+	param[GRAY_THRESHOLD] =  128;
+	param[BOUND_AREA_MAX] =  100;
+	param[HW_RATIO_MIN] =  130;
+	param[HW_RATIO_MAX] =  1000;
+	param[HW_RATIO_FOR_DIGIT_ONE] =  250;
+	param[ROTATION_DEGREE] =  5;
+
+    //RED_THRESHOLD = 128;
+    //GRAY_THRESHOLD = 128;
 }
 
 LedSolver::~LedSolver()
@@ -46,11 +54,17 @@ LedSolver::~LedSolver()
 
 void LedSolver::setParam(int index, int value)
 {
-    switch(index) {
-        case 1: RED_THRESHOLD = value; break;
-        case 2: GRAY_THRESHOLD = value; break;
-        default: break;
+	if (0 <= index && index < PARAM_SIZE) {
+        param[index] = value;
+        return;
+    } else {
+        cout << "Set Param Error!" << endl;
     }
+    //switch(index) {
+      //  case 1: RED_THRESHOLD = value; break;
+      //  case 2: GRAY_THRESHOLD = value; break;
+      //  default: break;
+    //}
 }
 
 void LedSolver::getRed(Mat& led_roi, Mat& led_roi_binary)
@@ -60,11 +74,11 @@ void LedSolver::getRed(Mat& led_roi, Mat& led_roi_binary)
     static Mat led_roi_gray;
 
     cvtColor(led_roi, led_roi_gray, COLOR_BGR2GRAY);
-    threshold(led_roi_gray, led_roi_gray, GRAY_THRESHOLD, 255, THRESH_BINARY);
+    threshold(led_roi_gray, led_roi_gray, param[GRAY_THRESHOLD], 255, THRESH_BINARY);
 
     split(led_roi, bgr_split);
     led_roi_red = 2 * bgr_split[2] - bgr_split[1] - bgr_split[0];
-    threshold(led_roi_red, led_roi_red, RED_THRESHOLD, 255, THRESH_BINARY);
+    threshold(led_roi_red, led_roi_red, param[RED_THRESHOLD], 255, THRESH_BINARY);
 
     led_roi_binary = led_roi_red & led_roi_gray;
     dilate(led_roi_binary, led_roi_binary, kernel);
@@ -92,14 +106,14 @@ bool LedSolver::process(Mat& led_roi)
         if (bound.x < 10 || bound.x + bound.width > led_roi.cols - 10
             || bound.y < 10 || bound.y + bound.height > led_roi.rows)
             continue;
-        if (bound.area() < 100)
+        if (bound.area() < param[BOUND_AREA_MAX]/100.0)		//g-f
             continue;
         float hw_ratio = (float)bound.height / bound.width;
         if (hw_ratio < 1.0)
             continue;
             //hw_ratio = 1.0 / hw_ratio;
         //cout << "HW ratio: " << hw_ratio << endl;
-        if (hw_ratio < 1.3 || hw_ratio > 10)
+        if (hw_ratio < param[HW_RATIO_MIN]/100.0 || hw_ratio > param[HW_RATIO_MAX]/100.0)	//g
             continue;
         digits.push_back(bound);
     }
@@ -120,13 +134,13 @@ bool LedSolver::process(Mat& led_roi)
         float hw_ratio = (float)digits[i].height / digits[i].width;
         if (hw_ratio < 1.0)
             hw_ratio = 1.0 / hw_ratio;
-        if (hw_ratio > 2.5) {
+        if (hw_ratio > param[HW_RATIO_FOR_DIGIT_ONE]/100.0) {			//g
             results[i] = 1;
             continue;
         }
         Mat roi = (led_roi_binary)(digits[i]).clone();
         Point center = Point(digits[i].width / 2, digits[i].height / 2);
-        Mat M2 = getRotationMatrix2D(center, 5, 1);
+        Mat M2 = getRotationMatrix2D(center, param[ROTATION_DEGREE], 1);			//5 - rotation degree 
         warpAffine(roi, roi, M2, roi.size(), 1, 0, 0);
         results[i] = predictCross(roi);
 #if DRAW == SHOW_ALL

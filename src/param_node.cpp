@@ -1,5 +1,8 @@
 #include "Headers.h"
 #include "sudoku/BlockSplit.h"
+#include "sudoku/LedSolver.h"
+
+using namespace sudoku;
 
 static ros::Publisher led_param_pub;
 static ros::Publisher sudoku_param_pub;
@@ -44,6 +47,44 @@ int sudokuParamMax(int index)
     return sudoku_param_max[index];
 }
 
+
+static int LED_PARAM[LedSolver::PARAM_SIZE] = {
+	128,
+	128,
+	100,
+	130,
+	1000,
+	250,
+	5
+};
+
+string ledParamEnumToStr(int index){
+	static string led_param_enum_to_str[LedSolver::PARAM_SIZE] = {
+		"led red threshold",
+		"led gray threshold",
+		"led bound area max",
+		"led hw ratio Min",
+		"led hw ratio Max",
+		"led hw ratio for digit one",
+		"led rotation degree"
+	};
+	return led_param_enum_to_str[index];
+}
+
+int ledParamMax(int index){
+	static int led_param_max[LedSolver::PARAM_SIZE] = {
+		255,
+		255,
+		200,
+		250,
+		2000,
+		500,
+		10
+	};
+	return led_param_max[index];
+}
+
+
 void advertiseParam(int index, int value, ros::Publisher& pub, std_msgs::Int16MultiArray& msg)
 {
     msg.data.clear();
@@ -52,47 +93,64 @@ void advertiseParam(int index, int value, ros::Publisher& pub, std_msgs::Int16Mu
     pub.publish(msg);
 }
 
-void advertiseLedParam(int index, int value)
-{
-    advertiseParam(index, value, led_param_pub, led_param_msg);
-}
+//void advertiseLedParam(int index, int value)
+//{
+ //   advertiseParam(index, value, led_param_pub, led_param_msg);
+//}
 
-void ledRedThresOnChange(int pos)
-{
-    LED_RED_THRESHOLD = pos;
-    advertiseLedParam(1, pos);
-}
+//void ledRedThresOnChange(int pos)
+//{
+//    LED_RED_THRESHOLD = pos;
+//    advertiseLedParam(1, pos);
+//}
 
-void ledGrayThresOnChange(int pos)
-{
-    LED_GRAY_THRESHOLD = pos;
-    advertiseLedParam(2, pos);
-}
+//void ledGrayThresOnChange(int pos)
+//{
+//    LED_GRAY_THRESHOLD = pos;
+//    advertiseLedParam(2, pos);
+//}
 
-void advertiseSudokuParam(int index, int value)
-{
+//void advertiseSudokuParam(int index, int value)
+//{
     //cout << "Index: " << index
     //<< "Value: " << value << endl;
-    sudoku_param_msg.data.clear();
-    sudoku_param_msg.data.push_back(index);
-    sudoku_param_msg.data.push_back(value);
-    sudoku_param_pub.publish(sudoku_param_msg);
-}
+//    sudoku_param_msg.data.clear();
+//    sudoku_param_msg.data.push_back(index);
+//    sudoku_param_msg.data.push_back(value);
+//    sudoku_param_pub.publish(sudoku_param_msg);
+//}
+
+//void advertiseLedParam(int index, int value){
+//	led_param_msg.data.clear();
+//	led_param_msg.data.push_back(index);
+//	led_param_msg.data.push_back(value);
+//	led_param_pub.publish(led_param_msg);
+//}
 
 void sudokuOnChange(int pos, void* id)
 {
     int* value = (int*)id;
     *value = pos;
-    advertiseSudokuParam(value - SUDOKU_PARAM, pos);
+    //advertiseSudokuParam(value - SUDOKU_PARAM, pos);
+	advertiseParam(value - SUDOKU_PARAM, pos, sudoku_param_pub, 	sudoku_param_msg );
+}
+
+void ledOnChange(int pos, void* id){
+	int* value = (int*)id;
+    *value = pos;
+	advertiseParam(value - LED_PARAM, pos, led_param_pub, 	led_param_msg );
 }
 
 void updateAllParam()
 {
-    advertiseLedParam(1, LED_RED_THRESHOLD);
-    advertiseLedParam(2, LED_GRAY_THRESHOLD);
+    //advertiseLedParam(1, LED_RED_THRESHOLD);
+    //advertiseLedParam(2, LED_GRAY_THRESHOLD);
     for (int i = 0; i < BlockSplit::PARAM_SIZE; ++i) {
-        advertiseSudokuParam(i, SUDOKU_PARAM[i]);
+        advertiseParam(i, SUDOKU_PARAM[i], 	sudoku_param_pub, 	sudoku_param_msg );
     }
+	for(int i = 0; i < LedSolver::PARAM_SIZE; i++){
+		advertiseParam(i, LED_PARAM[i], 	led_param_pub, 		led_param_msg);
+	}
 }
 
 int main(int argc, char* argv[])
@@ -105,12 +163,12 @@ int main(int argc, char* argv[])
     led_param_pub = nh.advertise<std_msgs::Int16MultiArray>("buff/led_param", 1);
     sudoku_param_pub = nh.advertise<std_msgs::Int16MultiArray>("buff/sudoku_param", 1);
 
-    LED_RED_THRESHOLD = 80;
-    LED_GRAY_THRESHOLD = 80;
+    //LED_RED_THRESHOLD = 80;
+    //LED_GRAY_THRESHOLD = 80;
 
     namedWindow("params");
-    createTrackbar("led red threshold", "params", &LED_RED_THRESHOLD, 255, (cv::TrackbarCallback)ledRedThresOnChange);
-    createTrackbar("led gray threshold", "params", &LED_GRAY_THRESHOLD, 255, (cv::TrackbarCallback)ledGrayThresOnChange);
+    //createTrackbar("led red threshold", "params", &LED_RED_THRESHOLD, 255, (cv::TrackbarCallback)ledRedThresOnChange);
+    //createTrackbar("led gray threshold", "params", &LED_GRAY_THRESHOLD, 255, (cv::TrackbarCallback)ledGrayThresOnChange);
 
     for (int i = 0; i < BlockSplit::PARAM_SIZE; ++i) {
         createTrackbar(sudokuParamEnumToStr(i), "params",
@@ -118,6 +176,14 @@ int main(int argc, char* argv[])
             (cv::TrackbarCallback)sudokuOnChange,
             SUDOKU_PARAM + i);
     }
+
+	for(int i = 0; i < LedSolver::PARAM_SIZE; i++){
+		createTrackbar(ledParamEnumToStr(i), "params",
+		LED_PARAM + i, ledParamMax(i),
+		(cv::TrackbarCallback)ledOnChange,
+		LED_PARAM + i);
+	}
+
     updateAllParam();
 
     while (ros::ok()) {
