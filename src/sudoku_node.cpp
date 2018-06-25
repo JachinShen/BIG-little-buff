@@ -1,26 +1,9 @@
-/*********************************************
-Sudoku Node: find the nine blocks
-Copyright 2018 JachinShen
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*********************************************/
-
 #include "sudoku/BlockSplit.h"
 
 static ros::Publisher led_rect_pub;
 static ros::Publisher mnist_rects_pub;
 static ros::Publisher fire_rects_pub;
-static BlockSplit block_split;
+static BlockSplit     block_split;
 
 void sudokuParamCallback(const std_msgs::Int16MultiArray& msg)
 {
@@ -30,11 +13,12 @@ void sudokuParamCallback(const std_msgs::Int16MultiArray& msg)
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
     static Mat img, gray, binary;
-    Rect led_rect;
-    Rect sudoku_rect;
+    Rect led_rect, sudoku_rect;
+
     img = cv_bridge::toCvShare(msg, "bgr8")->image;
     if (img.empty())
         return;
+
     if (block_split.process(img, led_rect, sudoku_rect)) {
         ROS_INFO_STREAM("Led Rect: " << led_rect);
         std_msgs::Int16MultiArray led_rect_msg;
@@ -53,7 +37,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
         fire_rects_pub.publish(sudoku_rect_msg);
         mnist_rects_pub.publish(sudoku_rect_msg);
     } else {
-        ROS_INFO("No sudoku Found!");
+        ROS_INFO("No Sudoku Found!");
     }
 }
 
@@ -65,19 +49,20 @@ void waitkeyTimerCallback(const ros::TimerEvent&)
 int main(int argc, char* argv[])
 {
     ros::init(argc, argv, "sudoku");
-    ROS_INFO("Start!");
     ros::NodeHandle nh;
     ros::Timer waitkey_timer = nh.createTimer(ros::Duration(0.1), waitkeyTimerCallback);
 
-    block_split.init();
+    ROS_INFO("Start!");
 
-    led_rect_pub = nh.advertise<std_msgs::Int16MultiArray>("buff/led_rect", 1);
+    led_rect_pub    = nh.advertise<std_msgs::Int16MultiArray>("buff/led_rect",    1);
     mnist_rects_pub = nh.advertise<std_msgs::Int16MultiArray>("buff/mnist_rects", 1);
-    fire_rects_pub = nh.advertise<std_msgs::Int16MultiArray>("buff/fire_rects", 1);
+    fire_rects_pub  = nh.advertise<std_msgs::Int16MultiArray>("buff/fire_rects",  1);
+
     image_transport::ImageTransport it(nh);
     image_transport::Subscriber sub = it.subscribe("camera/image", 1, imageCallback);
     ros::Subscriber sudoku_param_sub = nh.subscribe("buff/sudoku_param", 1, sudokuParamCallback);
 
+    block_split.init();
     ros::spin();
 
     return 0;

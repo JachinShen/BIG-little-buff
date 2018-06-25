@@ -26,12 +26,16 @@ int main(int argc, char** argv)
     cv::Mat frame;
     sensor_msgs::ImagePtr msg;
     ros::Rate loop_rate(30);
+    enum {VIDEO_FILE, VIDEO_CAMERA} video_type;
     while (nh.ok()) {
         cv::VideoCapture cap;
-        if ('0' <= argv[1][0] && argv[1][0] <= '9')
+        if ('0' <= argv[1][0] && argv[1][0] <= '9') {
+            video_type = VIDEO_CAMERA;
             cap.open(argv[1][0] - '0');
-        else
+        } else {
+            video_type = VIDEO_FILE;
             cap.open(argv[1]);
+        }
 
         if (!cap.isOpened()) {
             ROS_INFO("can not opencv video device");
@@ -51,7 +55,11 @@ int main(int argc, char** argv)
                 pub.publish(msg);
             }
 
-            waitKey(0);
+            if (video_type == VIDEO_FILE)
+                waitKey(0);
+            else if (video_type == VIDEO_CAMERA)
+                waitKey(1);
+
             ros::spinOnce();
             loop_rate.sleep();
         }

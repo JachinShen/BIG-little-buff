@@ -36,8 +36,10 @@ void ControlSM::setSudoku(int index, int data)
 
 void ControlSM::run()
 {
-   if (!sudokuChange())
+    if (!sudokuChange()) {
         return;
+    }
+    ROS_INFO("Tick!");
 
     if (state == WAIT) {
         if (sudoku[0] != -1) {
@@ -72,6 +74,6 @@ bool ControlSM::sudokuChange()
             ++change_cnt;
         }
     }
-
+    memcpy(sudoku_last, sudoku, sizeof(sudoku_last));
     return change_cnt > 7;
 }

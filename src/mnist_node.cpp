@@ -2,7 +2,7 @@
 
 static ros::Publisher             mnist_num_pub;
 static cv_bridge::CvImageConstPtr cv_ptr;
-static DnnClassifier                      mnist_classifier;
+static DnnClassifier              mnist_classifier;
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
@@ -19,7 +19,6 @@ void handwriteRectsCallback(const std_msgs::Int16MultiArray& msg)
     static Mat img, img_roi, gray, binary;
     static vector<Mat> mnist_roi;
     static Rect sudoku_rect;
-    static char window_name[] = "roi x";
     vector<Rect> mnist_rect;
     vector<vector<Point> > contours;
 
@@ -43,14 +42,8 @@ void handwriteRectsCallback(const std_msgs::Int16MultiArray& msg)
     }
 
     sort(mnist_rect.begin(), mnist_rect.end(), compareRect);
-
     mnist_roi.clear();
-
     for (uint i = 0; i < mnist_rect.size(); ++i) {
-        //Mat roi = (Mat(binary,
-            //Rect(msg.data[i] + 10, msg.data[i + 1] + 5,
-                //msg.data[i + 2] - 20, msg.data[i + 3] - 10))
-                       //.clone());
         Mat roi = (~binary)(mnist_rect[i]);
         //copyMakeBorder(roi, roi, 15, 15, 15, 15, BORDER_CONSTANT);
         resize(roi, roi, Size(28, 28));
@@ -59,10 +52,12 @@ void handwriteRectsCallback(const std_msgs::Int16MultiArray& msg)
 
     mnist_classifier.process(mnist_roi);
 
-    for (uint i=0; i<mnist_roi.size(); ++i) {
-        window_name[4] = i + 1 + '0';
-        imshow(window_name, mnist_roi[i]);
+#if DRAW == SHOW_ALL
+    for (uint i = 0; i < mnist_rect.size(); ++i) {
+        rectangle(img_roi, mnist_rect[i], Scalar(255, 0, 0), 2);
     }
+    imshow("Mnist", img_roi);
+#endif
 }
 
 void ledNumCallback(const std_msgs::Int16MultiArray& msg)
@@ -76,6 +71,7 @@ void ledNumCallback(const std_msgs::Int16MultiArray& msg)
 
 void mnistParamCallback(const std_msgs::Int16MultiArray& msg)
 {
+    ROS_INFO_STREAM("Mnist Param: " << msg.data[0]);
 }
 
 void waitkeyTimerCallback(const ros::TimerEvent&)
@@ -86,12 +82,11 @@ void waitkeyTimerCallback(const ros::TimerEvent&)
 int main(int argc, char* argv[])
 {
     ros::init(argc, argv, "mnist");
-    ROS_INFO("Start!");
     ros::NodeHandle nh;
     ros::Timer waitkey_timer = nh.createTimer(ros::Duration(0.1), waitkeyTimerCallback);
 
-    mnist_num_pub
-        = nh.advertise<std_msgs::Int16MultiArray>("buff/mnist_num", 1, true);
+    ROS_INFO("Start!");
+    mnist_num_pub = nh.advertise<std_msgs::Int16MultiArray>("buff/mnist_num", 1, true);
 
     image_transport::ImageTransport it(nh);
     image_transport::Subscriber sub
@@ -103,11 +98,10 @@ int main(int argc, char* argv[])
     ros::Subscriber mnist_param_sub
         = nh.subscribe("buff/mnist_param", 1, mnistParamCallback);
 
-    string model_file = "/home/jachinshen/Projects/lunar_ws/src/buff/caffemodels/mnist_model.prototxt";
+    string model_file   = "/home/jachinshen/Projects/lunar_ws/src/buff/caffemodels/mnist_model.prototxt";
     string trained_file = "/home/jachinshen/Projects/lunar_ws/src/buff/caffemodels/mnist_model.caffemodel";
-    string mean_file = "/home/jachinshen/Projects/lunar_ws/src/buff/caffemodels/mean.binaryproto";
-    string label_file = "/home/jachinshen/Projects/lunar_ws/src/buff/caffemodels/synset_words.txt";
-    //string low_trained_file = "/home/jachinshen/Projects/lunar_ws/src/buff/caffemodels/lenet_iter_10000.caffemodel";
+    string mean_file    = "/home/jachinshen/Projects/lunar_ws/src/buff/caffemodels/mean.binaryproto";
+    string label_file   = "/home/jachinshen/Projects/lunar_ws/src/buff/caffemodels/synset_words.txt";
 
     mnist_classifier.init(model_file, trained_file, mean_file, label_file);
 

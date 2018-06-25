@@ -2,8 +2,8 @@
 #include "sudoku/BlockSplit.h"
 #include "sudoku/LedSolver.h"
 
-static ros::Publisher led_param_pub;
-static ros::Publisher sudoku_param_pub;
+static ros::Publisher            led_param_pub;
+static ros::Publisher            sudoku_param_pub;
 static std_msgs::Int16MultiArray led_param_msg;
 static std_msgs::Int16MultiArray sudoku_param_msg;
 
@@ -43,9 +43,9 @@ int sudokuParamMax(int index)
 }
 
 static int LED_PARAM[LedSolver::PARAM_SIZE] = {
+    50,
     80,
-    80,
-    500,
+    400,
     2500,
     130,
     1000,
@@ -108,18 +108,22 @@ void ledOnChange(int pos, void* id)
 void updateAllParam()
 {
     static int sudoku_publish_id = 0;
-    static int led_publish_id = 0;
+    static int led_publish_id    = 0;
 
     advertiseParam(sudoku_publish_id, SUDOKU_PARAM[sudoku_publish_id], sudoku_param_pub, sudoku_param_msg);
     advertiseParam(led_publish_id, LED_PARAM[led_publish_id], led_param_pub, led_param_msg);
 
     sudoku_publish_id = (++sudoku_publish_id) % BlockSplit::PARAM_SIZE;
-    led_publish_id = (++led_publish_id) % LedSolver::PARAM_SIZE;
+    led_publish_id    = (++led_publish_id)    % LedSolver::PARAM_SIZE;
 }
 
 void waitkeyTimerCallback(const ros::TimerEvent&)
 {
     waitKey(1);
+}
+
+void updateTimerCallback(const ros::TimerEvent&)
+{
     ROS_INFO("Update All Param");
     updateAllParam();
 }
@@ -127,11 +131,12 @@ void waitkeyTimerCallback(const ros::TimerEvent&)
 int main(int argc, char* argv[])
 {
     ros::init(argc, argv, "param");
-    ROS_INFO("Start!");
     ros::NodeHandle nh;
-    ros::Timer waitkey_timer = nh.createTimer(ros::Duration(0.2), waitkeyTimerCallback);
+    ros::Timer waitkey_timer = nh.createTimer(ros::Duration(0.05), waitkeyTimerCallback);
+    ros::Timer update_timer  = nh.createTimer(ros::Duration(0.3),  updateTimerCallback);
 
-    led_param_pub = nh.advertise<std_msgs::Int16MultiArray>("buff/led_param", 1);
+    ROS_INFO("Start!");
+    led_param_pub    = nh.advertise<std_msgs::Int16MultiArray>("buff/led_param",    1);
     sudoku_param_pub = nh.advertise<std_msgs::Int16MultiArray>("buff/sudoku_param", 1);
 
     namedWindow("params");

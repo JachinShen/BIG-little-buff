@@ -1,20 +1,3 @@
-/*********************************************************************
-recognize the 7-segment led number
-Copyright 2018 JachinShen
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*********************************************************************/
-
 #include "sudoku/LedSolver.h"
 
 LedSolver::LedSolver()
@@ -22,7 +5,8 @@ LedSolver::LedSolver()
     //hog = NULL;
 }
 
-void LedSolver::init(const char* file)
+//void LedSolver::init(const char* file)
+void LedSolver::init()
 {
     //svm    = SVM::create();
     //svm    = svm->load(file);
@@ -89,7 +73,6 @@ bool LedSolver::process(Mat& led_roi)
     static Mat led_roi_binary;
 #if DRAW == SHOW_ALL
     static Mat draw;
-    char window_name[15] = "segment roi1";
 #endif
     vector<vector<Point> > contours;
     vector<Rect> digits;
@@ -97,8 +80,6 @@ bool LedSolver::process(Mat& led_roi)
 #if DRAW == SHOW_ALL
     draw = led_roi.clone();
 #endif
-
-    //digits.clear();
 
     getRed(led_roi, led_roi_binary);
     findContours(led_roi_binary, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
@@ -119,45 +100,36 @@ bool LedSolver::process(Mat& led_roi)
         digits.push_back(bound);
     }
 
-    ROS_INFO_STREAM("digits size: " << digits.size());
     if (digits.size() > 5 || digits.size() == 0) {
         ROS_INFO("Clear vector");
         digits.clear(); // add for secure, otherwise munmap_chunk() error will be raised if there are too many elements in the vector (about 30)
         return false;
     }
 
-    ROS_INFO("Sort");
     sort(digits.begin(), digits.begin()+digits.size()-1, compareRect);
+
+    for (uint i = 0; i < digits.size(); ++i) {
+        float hw_ratio = (float)digits[i].height / digits[i].width;
+        if (hw_ratio < 1.0)
+            hw_ratio = 1.0 / hw_ratio;
+        if (hw_ratio > param[HW_RATIO_FOR_DIGIT_ONE]/100.0) {
+            results[i] = 1;
+            continue;
+        }
+        Mat roi = (led_roi_binary)(digits[i]);
+        Point center = Point(digits[i].width / 2, digits[i].height / 2);
+        Mat M2 = getRotationMatrix2D(center, param[ROTATION_DEGREE], 1);
+        warpAffine(roi, roi, M2, roi.size(), 1, 0, 0);
+        results[i] = predictCross(roi);
+    }
 
 #if DRAW == SHOW_ALL
     for (uint i = 0; i < digits.size(); ++i) {
         rectangle(draw, digits[i], Scalar(255, 0, 0), 2);
     }
     imshow("draw", draw);
+    imshow("Cross Led Red Binary: ", led_roi_binary);
 #endif
-
-    for (uint i = 0; i < digits.size(); ++i) {
-        float hw_ratio = (float)digits[i].height / digits[i].width;
-        if (hw_ratio < 1.0)
-            hw_ratio = 1.0 / hw_ratio;
-        if (hw_ratio > param[HW_RATIO_FOR_DIGIT_ONE]/100.0) {			//g
-            results[i] = 1;
-            continue;
-        }
-        Mat roi = (led_roi_binary)(digits[i]).clone();
-        Point center = Point(digits[i].width / 2, digits[i].height / 2);
-        Mat M2 = getRotationMatrix2D(center, param[ROTATION_DEGREE], 1);			//5 - rotation degree 
-        warpAffine(roi, roi, M2, roi.size(), 1, 0, 0);
-        results[i] = predictCross(roi);
-#if DRAW == SHOW_ALL
-        window_name[11] = i + 1 + '0';
-        imshow(window_name, roi);
-#endif
-        //if (results[i] == -1) {
-            //roi = (~led_roi_binary)(digits[i]).clone();
-            //results[i] = predictSVM(roi);
-        //}
-    }
 
     return true;
 }

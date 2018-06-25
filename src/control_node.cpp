@@ -4,35 +4,45 @@ ControlSM csm;
 
 void ledNumCallback(const std_msgs::Int16MultiArray& msg)
 {
-    ROS_INFO("Led:");
+    cout << "Led:";
     for (uint i = 0; i < msg.data.size(); ++i) {
         csm.setLed(i, msg.data[i]);
-        ROS_INFO_STREAM(msg.data[i]);
+        cout << " " << msg.data[i];
     }
+    cout << endl;
 }
 
 void mnistNumCallback(const std_msgs::Int16MultiArray& msg)
 {
-    ROS_INFO("Mnist:");
+    cout << "Mnist:";
     for (uint i = 0; i < msg.data.size(); ++i) {
         csm.setSudoku(i, msg.data[i]);
-        ROS_INFO_STREAM(msg.data[i]);
+        cout << " " << msg.data[i];
     }
+    cout << endl;
 }
 
 void fireNumCallback(const std_msgs::Int16MultiArray& msg)
 {
-    ROS_INFO("Fire:");
+    cout << "Fire:";
     for (uint i = 0; i < msg.data.size(); ++i) {
         csm.setSudoku(i, msg.data[i]);
-        ROS_INFO_STREAM(msg.data[i]);
+        cout << " " << msg.data[i];
     }
+    cout << endl;
 }
+
+void csmTimerCallback(const ros::TimerEvent&)
+{
+    csm.run();
+}
+
 int main(int argc, char* argv[])
 {
     ros::init(argc, argv, "control");
     ROS_INFO("Start!");
     ros::NodeHandle nh;
+    ros::Timer csm_timer = nh.createTimer(ros::Duration(0.1), csmTimerCallback);
 
     ros::Subscriber led_num_sub
         = nh.subscribe("buff/led_num", 1, ledNumCallback);
@@ -41,13 +51,7 @@ int main(int argc, char* argv[])
     ros::Subscriber fire_num_sub
         = nh.subscribe("buff/fire_num", 1, fireNumCallback);
 
-    ros::Rate loop_rate(100);
-
-    while (ros::ok()) {
-        csm.run();
-        ros::spinOnce();
-        loop_rate.sleep();
-    }
+    ros::spin();
 
     return 0;
 }

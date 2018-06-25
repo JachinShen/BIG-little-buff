@@ -29,10 +29,12 @@ void fireRectsCallback(const std_msgs::Int16MultiArray& msg)
     }
     sudoku_rect = Rect(msg.data[0], msg.data[1], msg.data[2], msg.data[3]);
     ROS_INFO_STREAM("Sudoku Rect: " << sudoku_rect);
+    if (sudoku_rect.area() == 0)
+        return;
+
     sudoku_roi = img(sudoku_rect);
     cvtColor(sudoku_roi, gray, CV_BGR2GRAY);
     threshold(gray, binary, 180, 255, CV_THRESH_BINARY);
-    imshow("sudoku roi", sudoku_roi);
 
     findContours(binary.clone(), contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
     for (uint i = 0; i < contours.size(); ++i) {
@@ -45,7 +47,6 @@ void fireRectsCallback(const std_msgs::Int16MultiArray& msg)
 
     fire_roi.clear();
     for (uint i=0; i<fire_rect.size(); ++i) {
-        //Mat roi = (binary(Rect(sudoku_rect.tl()+fire_rect[i].tl(), fire_rect[i].size())));
         Mat roi = (binary(fire_rect[i]));
         int left_right_gap = (roi.rows - roi.cols) / 2 + 5;
         copyMakeBorder(roi, roi, 5, 5, left_right_gap, left_right_gap, BORDER_CONSTANT);
@@ -54,15 +55,13 @@ void fireRectsCallback(const std_msgs::Int16MultiArray& msg)
     }
     fire_classifier.process(fire_roi);
 
-    imshow("roi 1", fire_roi[0]);
-    imshow("roi 2", fire_roi[1]);
-    imshow("roi 3", fire_roi[2]);
-    imshow("roi 4", fire_roi[3]);
-    imshow("roi 5", fire_roi[4]);
-    imshow("roi 6", fire_roi[5]);
-    imshow("roi 7", fire_roi[6]);
-    imshow("roi 8", fire_roi[7]);
-    imshow("roi 9", fire_roi[8]);
+#if DRAW == SHOW_ALL
+    imshow("sudoku roi", sudoku_roi);
+    for (uint i = 0; i < fire_rect.size(); ++i) {
+        rectangle(binary, fire_rect[i], Scalar(255, 0, 0), 2);
+    }
+    imshow("Fire", fire_rect);
+#endif
 }
 
 void ledNumCallback(const std_msgs::Int16MultiArray& msg)
@@ -76,6 +75,7 @@ void ledNumCallback(const std_msgs::Int16MultiArray& msg)
 
 void fireParamCallback(const std_msgs::Int16MultiArray& msg)
 {
+    ROS_INFO_STREAM("Fire Param: " << msg.data[0]);
 }
 
 void waitkeyTimerCallback(const ros::TimerEvent&)
@@ -107,7 +107,6 @@ int main(int argc, char* argv[])
     string trained_file = "/home/jachinshen/Projects/lunar_ws/src/buff/caffemodels/fire_model.caffemodel";
     string mean_file = "/home/jachinshen/Projects/lunar_ws/src/buff/caffemodels/mean.binaryproto";
     string label_file = "/home/jachinshen/Projects/lunar_ws/src/buff/caffemodels/synset_words.txt";
-    //string low_trained_file = "/home/jachinshen/Projects/lunar_ws/src/buff/caffemodels/lenet_iter_10000.caffemodel";
 
     fire_classifier.init(model_file, trained_file, mean_file, label_file);
 

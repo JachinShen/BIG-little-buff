@@ -307,25 +307,3 @@ target_link_libraries(serial_node
     ${catkin_LIBRARIES}
     ${OpenCV_LIBS}
     )
-#add_executable(zyrec src/main.cpp
-					  #src/Capture.cpp
-					  #src/InitParam.cpp
-					  #src/TString.cpp
-					  #src/sudoku_new/HandWritingSolver.cpp
-					  #src/sudoku_new/BlockSplit.cpp
-					  #src/sudoku_new/LedNumberSolver.cpp
-					  #src/sudoku_new/LogicProcess.cpp
-					   #src/sudoku_new/caffe_prototype.cpp
-					  #src/sudoku_old/BlockSplit.cpp)
-#add_dependencies(zyrec uart_node_generate_messages_cpp
-#)
-#target_link_libraries(zyrec
-	#${catkin_LIBRARIES} 
-	#${OpenCV_LIBS}
-	#-lcaffe
-	#glog
-#)
-#add_executable(readuart src/readuart.cpp)
-#target_link_libraries(readuart
-	#${catkin_LIBRARIES}
-	#)
