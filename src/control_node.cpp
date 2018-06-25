@@ -4,26 +4,28 @@ ControlSM csm;
 
 void ledNumCallback(const std_msgs::Int16MultiArray& msg)
 {
-    cout << "Led: " << endl;
+    ROS_INFO("Led:");
     for (uint i = 0; i < msg.data.size(); ++i) {
         csm.setLed(i, msg.data[i]);
-        cout << msg.data[i] << endl;
+        ROS_INFO_STREAM(msg.data[i]);
     }
 }
 
 void mnistNumCallback(const std_msgs::Int16MultiArray& msg)
 {
-    cout << "Mnist: " << endl;
+    ROS_INFO("Mnist:");
     for (uint i = 0; i < msg.data.size(); ++i) {
-        cout << msg.data[i] << endl;
+        csm.setSudoku(i, msg.data[i]);
+        ROS_INFO_STREAM(msg.data[i]);
     }
 }
 
 void fireNumCallback(const std_msgs::Int16MultiArray& msg)
 {
-    cout << "Fire: " << endl;
+    ROS_INFO("Fire:");
     for (uint i = 0; i < msg.data.size(); ++i) {
-        cout << msg.data[i] << endl;
+        csm.setSudoku(i, msg.data[i]);
+        ROS_INFO_STREAM(msg.data[i]);
     }
 }
 int main(int argc, char* argv[])
@@ -47,6 +49,5 @@ int main(int argc, char* argv[])
         loop_rate.sleep();
     }
 
-    ROS_INFO("Finish!");
     return 0;
 }

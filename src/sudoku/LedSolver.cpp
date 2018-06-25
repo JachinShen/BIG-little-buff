@@ -34,6 +34,7 @@ void LedSolver::init(const char* file)
 
 	param[RED_THRESHOLD]          = 128;
 	param[GRAY_THRESHOLD]         = 128;
+	param[BOUND_AREA_MAX]         = 30;
 	param[BOUND_AREA_MAX]         = 100;
 	param[HW_RATIO_MIN]           = 130;
 	param[HW_RATIO_MAX]           = 1000;
@@ -97,6 +98,8 @@ bool LedSolver::process(Mat& led_roi)
     draw = led_roi.clone();
 #endif
 
+    //digits.clear();
+
     getRed(led_roi, led_roi_binary);
     findContours(led_roi_binary, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
     for (uint i = 0; i < contours.size(); ++i) {
@@ -104,19 +107,27 @@ bool LedSolver::process(Mat& led_roi)
         if (bound.x < 10 || bound.x + bound.width > led_roi.cols - 10
             || bound.y < 10 || bound.y + bound.height > led_roi.rows)
             continue;
-        if (bound.area() < param[BOUND_AREA_MAX]/100.0)		//g-f
+        if (bound.area() < param[BOUND_AREA_MIN] || bound.area() > param[BOUND_AREA_MAX])
             continue;
         float hw_ratio = (float)bound.height / bound.width;
         if (hw_ratio < 1.0)
             continue;
             //hw_ratio = 1.0 / hw_ratio;
         //cout << "HW ratio: " << hw_ratio << endl;
-        if (hw_ratio < param[HW_RATIO_MIN]/100.0 || hw_ratio > param[HW_RATIO_MAX]/100.0)	//g
+        if (hw_ratio < param[HW_RATIO_MIN]/100.0 || hw_ratio > param[HW_RATIO_MAX]/100.0)
             continue;
         digits.push_back(bound);
     }
 
-    sort(digits.begin(), digits.end(), compareRect);
+    ROS_INFO_STREAM("digits size: " << digits.size());
+    if (digits.size() > 5 || digits.size() == 0) {
+        ROS_INFO("Clear vector");
+        digits.clear(); // add for secure, otherwise munmap_chunk() error will be raised if there are too many elements in the vector (about 30)
+        return false;
+    }
+
+    ROS_INFO("Sort");
+    sort(digits.begin(), digits.begin()+digits.size()-1, compareRect);
 
 #if DRAW == SHOW_ALL
     for (uint i = 0; i < digits.size(); ++i) {
@@ -124,9 +135,6 @@ bool LedSolver::process(Mat& led_roi)
     }
     imshow("draw", draw);
 #endif
-
-    if (digits.size() > 5)
-        return false;
 
     for (uint i = 0; i < digits.size(); ++i) {
         float hw_ratio = (float)digits[i].height / digits[i].width;

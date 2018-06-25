@@ -24,11 +24,11 @@ void fireRectsCallback(const std_msgs::Int16MultiArray& msg)
 
     img = cv_ptr->image;
     if (img.empty()) {
-        cout << "Empty Image" << endl;
+        ROS_ERROR("Empty Image");
         return;
     }
     sudoku_rect = Rect(msg.data[0], msg.data[1], msg.data[2], msg.data[3]);
-    //cout << "Sudoku Rect: " << sudoku_rect << endl;
+    ROS_INFO_STREAM("Sudoku Rect: " << sudoku_rect);
     sudoku_roi = img(sudoku_rect);
     cvtColor(sudoku_roi, gray, CV_BGR2GRAY);
     threshold(gray, binary, 180, 255, CV_THRESH_BINARY);
@@ -63,7 +63,6 @@ void fireRectsCallback(const std_msgs::Int16MultiArray& msg)
     imshow("roi 7", fire_roi[6]);
     imshow("roi 8", fire_roi[7]);
     imshow("roi 9", fire_roi[8]);
-    waitKey(1);
 }
 
 void ledNumCallback(const std_msgs::Int16MultiArray& msg)
@@ -79,11 +78,17 @@ void fireParamCallback(const std_msgs::Int16MultiArray& msg)
 {
 }
 
+void waitkeyTimerCallback(const ros::TimerEvent&)
+{
+    waitKey(1);
+}
+
 int main(int argc, char* argv[])
 {
     ros::init(argc, argv, "fire");
     ROS_INFO("Start!");
     ros::NodeHandle nh;
+    ros::Timer waitkey_timer = nh.createTimer(ros::Duration(0.1), waitkeyTimerCallback);
 
     fire_num_pub
         = nh.advertise<std_msgs::Int16MultiArray>("buff/fire_num", 1, true);
@@ -108,6 +113,5 @@ int main(int argc, char* argv[])
 
     ros::spin();
 
-    ROS_INFO("Finish!");
     return 0;
 }

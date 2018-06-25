@@ -242,12 +242,12 @@ target_link_libraries(sudoku_node
     ${catkin_LIBRARIES}
     ${OpenCV_LIBS}
     )
-add_executable(led_num_node 
+add_executable(led_solver_node 
     ./src/led_solver_node.cpp
     ./src/sudoku/LedSolver.cpp
     ./src/sudoku/RectSort.cpp
     )
-target_link_libraries(led_num_node 
+target_link_libraries(led_solver_node 
     ${catkin_LIBRARIES}
     ${OpenCV_LIBS}
     )

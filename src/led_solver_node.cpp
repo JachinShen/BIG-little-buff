@@ -43,25 +43,34 @@ void ledRectCallback(const std_msgs::Int16MultiArray& msg)
 
     img = cv_ptr->image;
     if (img.empty()) {
-        cout << "Empty Image" << endl;
+        ROS_ERROR("Empty Image");
         return;
     }
 
+    ROS_INFO_STREAM("Led Rect: " << led_rect);
     led_roi = Mat(img, led_rect);
+    ROS_INFO("Get ROI");
     if (led_solver.process(led_roi)) {
         led_num_msg.data.clear();
+
         for (uint i = 0; i < 5; ++i)
             led_num_msg.data.push_back(led_solver.getResult(i));
 
         led_num_pub.publish(led_num_msg);
-    }
+    } else {
 
-    waitKey(1);
+    }
 }
 
 void ledParamCallback(const std_msgs::Int16MultiArray& msg)
 {
+    //ROS_INFO_STREAM("Get Param" << msg.data[0]);
     led_solver.setParam(msg.data[0], msg.data[1]);
+}
+
+void waitkeyTimerCallback(const ros::TimerEvent&)
+{
+    waitKey(1);
 }
 
 int main(int argc, char* argv[])
@@ -69,6 +78,7 @@ int main(int argc, char* argv[])
     ros::init(argc, argv, "led");
     ROS_INFO("Start!");
     ros::NodeHandle nh;
+    ros::Timer waitkey_timer = nh.createTimer(ros::Duration(0.1), waitkeyTimerCallback);
 
     led_num_pub
         = nh.advertise<std_msgs::Int16MultiArray>("buff/led_num", 1);
@@ -86,6 +96,5 @@ int main(int argc, char* argv[])
 
     ros::spin();
 
-    ROS_INFO("Finish!");
     return 0;
 }

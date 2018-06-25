@@ -21,6 +21,8 @@ private:
 
     int led[5];
     int sudoku[9];
+    int sudoku_last[9];
 
     void transferState(State s);
+    bool sudokuChange();
 };

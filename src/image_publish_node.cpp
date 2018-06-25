@@ -12,9 +12,9 @@ using namespace cv;
 int main(int argc, char** argv)
 {
     //Check if video source has been passed as a parameter
-    ROS_INFO("Start!\n");
+    ROS_INFO("Start!");
     if (argv[1] == NULL) {
-        ROS_INFO("argv[1]=NULL, no video source\n");
+        ROS_ERROR("argv[1]=NULL, no video source\n");
         return 1;
     }
 
@@ -34,10 +34,10 @@ int main(int argc, char** argv)
             cap.open(argv[1]);
 
         if (!cap.isOpened()) {
-            ROS_INFO("can not opencv video device\n");
+            ROS_INFO("can not opencv video device");
             return 1;
         }
-        ROS_INFO("open successfully\n");
+        ROS_INFO("open successfully");
 
 
         while (cap.read(frame) && ros::ok()) {

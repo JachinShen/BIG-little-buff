@@ -25,11 +25,11 @@ void handwriteRectsCallback(const std_msgs::Int16MultiArray& msg)
 
     img = cv_ptr->image;
     if (img.empty()) {
-        cout << "Empty Image" << endl;
+        ROS_ERROR("Empty Image");
         return;
     }
     sudoku_rect = Rect(msg.data[0], msg.data[1], msg.data[2], msg.data[3]);
-    cout << "Sudoku Rect: " << sudoku_rect << endl;
+    ROS_INFO_STREAM("Sudoku Rect: " << sudoku_rect);
     img_roi = img(sudoku_rect);
     cvtColor(img_roi, gray, CV_BGR2GRAY);
     threshold(gray, binary, 128, 255, CV_THRESH_BINARY);
@@ -63,7 +63,6 @@ void handwriteRectsCallback(const std_msgs::Int16MultiArray& msg)
         window_name[4] = i + 1 + '0';
         imshow(window_name, mnist_roi[i]);
     }
-    waitKey(1);
 }
 
 void ledNumCallback(const std_msgs::Int16MultiArray& msg)
@@ -79,11 +78,17 @@ void mnistParamCallback(const std_msgs::Int16MultiArray& msg)
 {
 }
 
+void waitkeyTimerCallback(const ros::TimerEvent&)
+{
+    waitKey(1);
+}
+
 int main(int argc, char* argv[])
 {
     ros::init(argc, argv, "mnist");
     ROS_INFO("Start!");
     ros::NodeHandle nh;
+    ros::Timer waitkey_timer = nh.createTimer(ros::Duration(0.1), waitkeyTimerCallback);
 
     mnist_num_pub
         = nh.advertise<std_msgs::Int16MultiArray>("buff/mnist_num", 1, true);
@@ -108,6 +113,5 @@ int main(int argc, char* argv[])
 
     ros::spin();
 
-    ROS_INFO("Finish!");
     return 0;
 }

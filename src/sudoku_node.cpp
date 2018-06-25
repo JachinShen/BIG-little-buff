@@ -36,7 +36,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
     if (img.empty())
         return;
     if (block_split.process(img, led_rect, sudoku_rect)) {
-        cout << "Led Rect: " << led_rect << endl;
+        ROS_INFO_STREAM("Led Rect: " << led_rect);
         std_msgs::Int16MultiArray led_rect_msg;
         led_rect_msg.data.push_back(led_rect.x);
         led_rect_msg.data.push_back(led_rect.y);
@@ -44,7 +44,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
         led_rect_msg.data.push_back(led_rect.height);
         led_rect_pub.publish(led_rect_msg);
 
-        cout << "Sudoku Rects: " << sudoku_rect << endl;
+        ROS_INFO_STREAM("Sudoku Rect: " << sudoku_rect);
         std_msgs::Int16MultiArray sudoku_rect_msg;
         sudoku_rect_msg.data.push_back(sudoku_rect.x);
         sudoku_rect_msg.data.push_back(sudoku_rect.y);
@@ -55,6 +55,10 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
     } else {
         ROS_INFO("No sudoku Found!");
     }
+}
+
+void waitkeyTimerCallback(const ros::TimerEvent&)
+{
     waitKey(1);
 }
 
@@ -63,6 +67,7 @@ int main(int argc, char* argv[])
     ros::init(argc, argv, "sudoku");
     ROS_INFO("Start!");
     ros::NodeHandle nh;
+    ros::Timer waitkey_timer = nh.createTimer(ros::Duration(0.1), waitkeyTimerCallback);
 
     block_split.init();
 
@@ -75,6 +80,5 @@ int main(int argc, char* argv[])
 
     ros::spin();
 
-    ROS_INFO("Finish!");
     return 0;
 }
