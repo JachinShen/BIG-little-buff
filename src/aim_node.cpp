@@ -1,39 +1,58 @@
-/*********************************************
-Sudoku Node: find the nine blocks
-Copyright 2018 JachinShen
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*********************************************/
-
 #include "kcftracker.hpp"
+#include "sudoku/BlockSplit.h"
 #include "Headers.h"
 
-void aimNumCallback(const std_msgs::Int16MultiArray& msg)
+static Rect aim_rect;
+
+void aimRectCallback(const std_msgs::Int16MultiArray& msg)
 {
+    aim_rect = Rect(msg.data[0], msg.data[1], msg.data[2], msg.data[3]);
 }
 
 int main(int argc, char* argv[])
 {
-    ros::init(argc, argv, "aim");
     ROS_INFO("Start!");
+    if (argv[1] == NULL) {
+        ROS_ERROR("argv[1]=NULL, no video source\n");
+        return 1;
+    }
+
+    ros::init(argc, argv, "aim");
     ros::NodeHandle nh;
 
-    //image_transport::ImageTransport it(nh);
-    //image_transport::Subscriber sub = it.subscribe("camera/image", 1, imageCallback);
-    ros::Subscriber aim_sub = nh.subscribe("buff/aim_num", 1, aimNumCallback);
+    ros::Subscriber aim_sub = nh.subscribe("buff/aim_rect", 1, aimRectCallback);
 
-    ros::spin();
+    Mat frame;
+    Rect led_rect, sudoku_rect;
+    enum {VIDEO_FILE, VIDEO_CAMERA} video_type;
+    KCFTracker tracker(false, true, false, false);
+    while(nh.ok()) {
+        cv::VideoCapture cap;
+        if ('0' <= argv[1][0] && argv[1][0] <= '9') {
+            video_type = VIDEO_CAMERA;
+            cap.open(argv[1][0] - '0');
+        } else {
+            video_type = VIDEO_FILE;
+            cap.open(argv[1]);
+        }
 
-    ROS_INFO("Finish!");
+        if (!cap.isOpened()) {
+            ROS_INFO("can not opencv video device");
+            return 1;
+        }
+        ROS_INFO("open successfully");
+
+        while(cap.read(frame) && ros::ok()) {
+            if (frame.empty())
+                continue;
+            resize(frame, frame, Size(640, 480));
+            if (frame.channels() != 1) {
+                cvtColor(frame, frame, CV_BGR2GRAY);
+            }
+            imshow("src", frame);
+            waitKey(0);
+        }
+    }
+
     return 0;
 }

@@ -91,8 +91,8 @@ int main(int argc, char* argv[])
     image_transport::ImageTransport it(nh);
     image_transport::Subscriber sub
         = it.subscribe("camera/image", 1, imageCallback);
-    ros::Subscriber handwrite_rects_sub
-        = nh.subscribe("buff/mnist_rects", 1, handwriteRectsCallback);
+    ros::Subscriber sudoku_rect_sub
+        = nh.subscribe("buff/sudoku_rect", 1, handwriteRectsCallback);
     ros::Subscriber led_num_sub
         = nh.subscribe("buff/led_num", 1, ledNumCallback);
     ros::Subscriber mnist_param_sub

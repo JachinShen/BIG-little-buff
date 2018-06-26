@@ -1,8 +1,10 @@
 #include "sudoku/DnnClassifier.h"
 
 static ros::Publisher             fire_num_pub;
+static ros::Publisher             fire_rect_pub;
 static cv_bridge::CvImageConstPtr cv_ptr;
 static DnnClassifier              fire_classifier;
+static vector<Rect> fire_rect;
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
@@ -19,7 +21,6 @@ void fireRectsCallback(const std_msgs::Int16MultiArray& msg)
     static Mat img, gray, binary, sudoku_roi;
     static vector<Mat> fire_roi;
     static Rect sudoku_rect;
-    vector<Rect> fire_rect;
     vector<vector<Point> > contours;
 
     img = cv_ptr->image;
@@ -37,18 +38,21 @@ void fireRectsCallback(const std_msgs::Int16MultiArray& msg)
     threshold(gray, binary, 180, 255, CV_THRESH_BINARY);
 
     findContours(binary.clone(), contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+    fire_rect.clear();
     for (uint i = 0; i < contours.size(); ++i) {
         Rect bound = boundingRect(contours[i]);
         if (bound.area() < 500)
             continue;
         fire_rect.push_back(bound);
     }
-    sort(fire_rect.begin(), fire_rect.end(), compareRect);
+    sort(fire_rect.begin(), fire_rect.begin()+fire_rect.size()-1, compareRect);
 
     fire_roi.clear();
     for (uint i=0; i<fire_rect.size(); ++i) {
         Mat roi = (binary(fire_rect[i]));
         int left_right_gap = (roi.rows - roi.cols) / 2 + 5;
+        if (left_right_gap <= 0)
+            continue;
         copyMakeBorder(roi, roi, 5, 5, left_right_gap, left_right_gap, BORDER_CONSTANT);
         resize(roi, roi, Size(28, 28));
         fire_roi.push_back(roi);
@@ -67,10 +71,20 @@ void fireRectsCallback(const std_msgs::Int16MultiArray& msg)
 void ledNumCallback(const std_msgs::Int16MultiArray& msg)
 {
     static std_msgs::Int16MultiArray fire_num_msg;
+    static std_msgs::Int16MultiArray fire_rect_msg;
     fire_num_msg.data.clear();
-    for (uint i = 0; i < msg.data.size(); ++i)
-        fire_num_msg.data.push_back(fire_classifier.getNumberBlockID(msg.data[i]));
+    fire_rect_msg.data.clear();
+    int block_id;
+    for (uint i = 0; i < msg.data.size(); ++i) {
+        block_id = fire_classifier.getNumberBlockID(msg.data[i]);
+        fire_num_msg.data.push_back(block_id);
+        fire_rect_msg.data.push_back(fire_rect[block_id].x);
+        fire_rect_msg.data.push_back(fire_rect[block_id].y);
+        fire_rect_msg.data.push_back(fire_rect[block_id].width);
+        fire_rect_msg.data.push_back(fire_rect[block_id].height);
+    }
     fire_num_pub.publish(fire_num_msg);
+    fire_rect_pub.publish(fire_rect_msg);
 }
 
 void fireParamCallback(const std_msgs::Int16MultiArray& msg)
@@ -92,12 +106,14 @@ int main(int argc, char* argv[])
 
     fire_num_pub
         = nh.advertise<std_msgs::Int16MultiArray>("buff/fire_num", 1, true);
+    fire_rect_pub
+        = nh.advertise<std_msgs::Int16MultiArray>("buff/fire_rect", 1, true);
 
     image_transport::ImageTransport it(nh);
     image_transport::Subscriber sub
         = it.subscribe("camera/image", 1, imageCallback);
-    ros::Subscriber fire_rects_sub
-        = nh.subscribe("buff/fire_rects", 1, fireRectsCallback);
+    ros::Subscriber sudoku_rect_sub
+        = nh.subscribe("buff/sudoku_rect", 1, fireRectsCallback);
     ros::Subscriber led_num_sub
         = nh.subscribe("buff/led_num", 1, ledNumCallback);
     ros::Subscriber fire_param_sub

@@ -23,6 +23,11 @@ private:
     int sudoku[9];
     int sudoku_last[9];
 
+    bool sudoku_run;
+    bool mnist_run;
+    bool fire_run;
+    bool led_run;
+
     void transferState(State s);
     bool sudokuChange();
 };

@@ -17,6 +17,10 @@ void ControlSM::transferState(State s)
 void ControlSM::init()
 {
     state = WAIT;
+    sudoku_run = true;
+    mnist_run  = true;
+    fire_run   = true;
+    led_run    = true;
     for (int i = 0; i < 6; ++i)
         led[i] = -1;
 
@@ -75,5 +79,5 @@ bool ControlSM::sudokuChange()
         }
     }
     memcpy(sudoku_last, sudoku, sizeof(sudoku_last));
-    return change_cnt > 7;
+    return change_cnt > 3;
 }

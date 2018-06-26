@@ -114,7 +114,9 @@ bool BlockSplit::process(Mat& input, Rect& led_rect,
     vector<Rect> blocks;
 
     draw = input.clone();
-    cvtColor(input, gray, CV_BGR2GRAY);
+    if (input.channels() != 1) {
+        cvtColor(input, gray, CV_BGR2GRAY);
+    }
     threshold(gray, binary, param[GRAY_THRES], 255, THRESH_BINARY);
     findContours(binary.clone(), contours, CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE);
 
