@@ -8,7 +8,7 @@
     <node pkg="buff" name="fire_node" type="fire_node"/>
     <node pkg="buff" name="mnist_node" type="mnist_node"/>
     <!--<node pkg="buff" name="aim_node" type="aim_node" launch-prefix="echo 'xxxx' | sudo -ES"/>-->
-    <node pkg="buff" name="aim_node" type="aim_node" />
-    <node pkg="buff" name="tick_node" type="tick_node" />
+    <!--<node pkg="buff" name="aim_node" type="aim_node" />-->
+    <node pkg="buff" name="tick_node" type="tick_node" output="screen" />
   </group>
 </launch>

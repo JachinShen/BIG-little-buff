@@ -21,6 +21,8 @@ void ControlSM::init()
     mnist_run  = true;
     fire_run   = true;
     led_run    = true;
+    on_change  = false;
+
     for (int i = 0; i < 6; ++i)
         led[i] = -1;
 
@@ -38,12 +40,20 @@ void ControlSM::setSudoku(int index, int data)
     sudoku[index] = data;
 }
 
+void ControlSM::tick(bool msg_data)
+{
+    if (on_change == false && msg_data == true) {
+        on_change = true;
+    }
+    if (on_change == true && msg_data == false) {
+        on_change = false;
+        ROS_INFO("Tick!");
+        run();
+    }
+}
+
 void ControlSM::run()
 {
-    if (!sudokuChange()) {
-        return;
-    }
-    ROS_INFO("Tick!");
 
     if (state == WAIT) {
         if (sudoku[0] != -1) {
@@ -51,19 +61,19 @@ void ControlSM::run()
         }
     } else if (state == LED_ONE) {
         if (sudoku[1] != -1) {
-            transferState(LED_ONE);
+            transferState(LED_TWO);
         }
     } else if (state == LED_TWO) {
         if (sudoku[2] != -1) {
-            transferState(LED_ONE);
+            transferState(LED_THREE);
         }
     } else if (state == LED_THREE) {
         if (sudoku[3] != -1) {
-            transferState(LED_ONE);
+            transferState(LED_FOUR);
         }
     } else if (state == LED_FOUR) {
         if (sudoku[4] != -1) {
-            transferState(LED_ONE);
+            transferState(LED_FIVE);
         }
     } else if (state == LED_FIVE) {
         transferState(WAIT);

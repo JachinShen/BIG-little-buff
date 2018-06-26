@@ -2,6 +2,7 @@
 
 static ros::Publisher tick_pub;
 static cv_bridge::CvImageConstPtr cv_ptr;
+static Rect sudoku_rect;
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
@@ -11,10 +12,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
         ROS_ERROR("cv_bridge exception: %s", e.what());
         return;
     }
-}
 
-void sudokuRectCallback(const std_msgs::Int16MultiArray& msg)
-{
     static Mat img, roi, roi_last, roi_diff;
     static std_msgs::Bool tick_msg;
     img = cv_ptr->image;
@@ -23,9 +21,6 @@ void sudokuRectCallback(const std_msgs::Int16MultiArray& msg)
         return;
     }
 
-    Rect sudoku_rect = Rect(
-            msg.data[0], msg.data[1],
-            msg.data[2], msg.data[3]);
     roi = img(sudoku_rect);
     cvtColor(roi, roi, CV_BGR2GRAY);
     threshold(roi, roi, 128, 255, CV_THRESH_BINARY);
@@ -37,9 +32,8 @@ void sudokuRectCallback(const std_msgs::Int16MultiArray& msg)
         imshow("roi", roi);
         imshow("roi last", roi_last);
         imshow("roi diff", roi_diff);
-        waitKey(1);
 
-        float difference = (float) countNonZero(roi_diff / (roi_diff.cols * roi_diff.rows));
+        float difference = (float) countNonZero(roi_diff) / (roi_diff.cols * roi_diff.rows);
         ROS_INFO_STREAM("Difference: " << difference);
 
         tick_msg.data = difference > 0.1;
@@ -50,10 +44,23 @@ void sudokuRectCallback(const std_msgs::Int16MultiArray& msg)
 
 }
 
+void sudokuRectCallback(const std_msgs::Int16MultiArray& msg)
+{
+    sudoku_rect = Rect(
+            msg.data[0], msg.data[1],
+            msg.data[2], msg.data[3]);
+}
+
+void waitkeyTimerCallback(const ros::TimerEvent&)
+{
+    waitKey(1);
+}
+
 int main(int argc, char* argv[])
 {
     ros::init(argc, argv, "tick");
     ros::NodeHandle nh;
+    ros::Timer waitkey_timer = nh.createTimer(ros::Duration(0.1), waitkeyTimerCallback);
 
     image_transport::ImageTransport it(nh);
     image_transport::Subscriber sub

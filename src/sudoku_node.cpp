@@ -2,8 +2,6 @@
 
 static ros::Publisher led_rect_pub;
 static ros::Publisher sudoku_rect_pub;
-//static ros::Publisher mnist_rects_pub;
-//static ros::Publisher fire_rects_pub;
 static BlockSplit     block_split;
 
 void sudokuParamCallback(const std_msgs::Int16MultiArray& msg)
@@ -36,8 +34,6 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
         sudoku_rect_msg.data.push_back(sudoku_rect.width);
         sudoku_rect_msg.data.push_back(sudoku_rect.height);
         sudoku_rect_pub.publish(sudoku_rect_msg);
-        //fire_rects_pub.publish(sudoku_rect_msg);
-        //mnist_rects_pub.publish(sudoku_rect_msg);
     } else {
         ROS_INFO("No Sudoku Found!");
     }
@@ -58,8 +54,6 @@ int main(int argc, char* argv[])
 
     led_rect_pub    = nh.advertise<std_msgs::Int16MultiArray>("buff/led_rect",    1);
     sudoku_rect_pub = nh.advertise<std_msgs::Int16MultiArray>("buff/sudoku_rect", 1);
-    //mnist_rects_pub = nh.advertise<std_msgs::Int16MultiArray>("buff/mnist_rects", 1);
-    //fire_rects_pub  = nh.advertise<std_msgs::Int16MultiArray>("buff/fire_rects",  1);
 
     image_transport::ImageTransport it(nh);
     image_transport::Subscriber sub = it.subscribe("camera/image", 1, imageCallback);

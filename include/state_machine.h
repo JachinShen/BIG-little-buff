@@ -5,6 +5,7 @@ public:
     ControlSM();
     ~ControlSM();
     void init();
+    void tick(bool msg_data);
     void run();
     void setLed(int index, int data);
     void setSudoku(int index, int data);
@@ -19,9 +20,12 @@ private:
         LED_FIVE
     } state;
 
+    bool on_change;
+
     int led[5];
     int sudoku[9];
     int sudoku_last[9];
+
 
     bool sudoku_run;
     bool mnist_run;

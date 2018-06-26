@@ -43,9 +43,14 @@ void fireRectCallback(const std_msgs::Int16MultiArray& msg)
     //cout << endl;
 }
 
+void tickCallback(const std_msgs::Bool& msg)
+{
+    csm.tick(msg.data);
+}
+
 void csmTimerCallback(const ros::TimerEvent&)
 {
-    csm.run();
+    //csm.run();
 }
 
 int main(int argc, char* argv[])
@@ -63,6 +68,8 @@ int main(int argc, char* argv[])
         = nh.subscribe("buff/fire_num", 1, fireNumCallback);
     ros::Subscriber fire_rect_sub
         = nh.subscribe("buff/fire_rect", 1, fireRectCallback);
+    ros::Subscriber tick_sub
+        = nh.subscribe("buff/tick", 1, tickCallback);
     aim_num_pub
         = nh.advertise<std_msgs::Int16MultiArray>("buff/aim_rect", 1);
 
