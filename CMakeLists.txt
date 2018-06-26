@@ -311,3 +311,10 @@ target_link_libraries(serial_node
     ${catkin_LIBRARIES}
     ${OpenCV_LIBS}
     )
+add_executable(tick_node
+    ./src/tick_node.cpp
+    )
+target_link_libraries(tick_node 
+    ${catkin_LIBRARIES}
+    ${OpenCV_LIBS}
+    )
