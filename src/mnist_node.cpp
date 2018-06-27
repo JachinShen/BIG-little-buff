@@ -3,6 +3,7 @@
 static ros::Publisher             mnist_num_pub;
 static cv_bridge::CvImageConstPtr cv_ptr;
 static DnnClassifier              mnist_classifier;
+static bool                       mnist_run;
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
@@ -16,6 +17,11 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 
 void handwriteRectsCallback(const std_msgs::Int16MultiArray& msg)
 {
+    if (!mnist_run) {
+        ROS_INFO("Ignore Mnist!");
+        return;
+    }
+
     static Mat img, img_roi, gray, binary;
     static vector<Mat> mnist_roi;
     static Rect sudoku_rect;
@@ -58,20 +64,31 @@ void handwriteRectsCallback(const std_msgs::Int16MultiArray& msg)
     }
     imshow("Mnist", img_roi);
 #endif
+
 }
 
-void ledNumCallback(const std_msgs::Int16MultiArray& msg)
+void ledIdCallback(const std_msgs::Int16MultiArray& msg)
 {
     static std_msgs::Int16MultiArray mnist_num_msg;
     mnist_num_msg.data.clear();
     for (uint i = 0; i < msg.data.size(); ++i)
         mnist_num_msg.data.push_back(mnist_classifier.getNumberBlockID(msg.data[i]));
     mnist_num_pub.publish(mnist_num_msg);
+
+    if (mnist_classifier.confirmNumber(msg.data[0])) {
+        mnist_run = false;
+        ROS_INFO("Set Mnist Stop!");
+    }
 }
 
 void mnistParamCallback(const std_msgs::Int16MultiArray& msg)
 {
     ROS_INFO_STREAM("Mnist Param: " << msg.data[0]);
+}
+
+void mnistCtrCallback(const std_msgs::Bool& msg)
+{
+    mnist_run = msg.data;
 }
 
 void waitkeyTimerCallback(const ros::TimerEvent&)
@@ -93,10 +110,12 @@ int main(int argc, char* argv[])
         = it.subscribe("camera/image", 1, imageCallback);
     ros::Subscriber sudoku_rect_sub
         = nh.subscribe("buff/sudoku_rect", 1, handwriteRectsCallback);
-    ros::Subscriber led_num_sub
-        = nh.subscribe("buff/led_num", 1, ledNumCallback);
+    ros::Subscriber led_id_sub
+        = nh.subscribe("buff/led_id", 1, ledIdCallback);
     ros::Subscriber mnist_param_sub
         = nh.subscribe("buff/mnist_param", 1, mnistParamCallback);
+    ros::Subscriber mnist_ctr_sub
+        = nh.subscribe("buff/mnist_ctr", 1, mnistCtrCallback);
 
     string model_file   = "/home/jachinshen/Projects/lunar_ws/src/buff/caffemodels/mnist_model.prototxt";
     string trained_file = "/home/jachinshen/Projects/lunar_ws/src/buff/caffemodels/mnist_model.caffemodel";

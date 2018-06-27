@@ -1,6 +1,9 @@
 #include "state_machine.h"
 
 static ros::Publisher aim_num_pub;
+static ros::Publisher led_id_pub;
+static ros::Publisher mnist_ctr_pub;
+static ros::Publisher fire_ctr_pub;
 static ControlSM csm;
 
 void ledNumCallback(const std_msgs::Int16MultiArray& msg)
@@ -11,6 +14,11 @@ void ledNumCallback(const std_msgs::Int16MultiArray& msg)
         cout << " " << msg.data[i];
     }
     cout << endl;
+
+    static std_msgs::Int16MultiArray led_id_msg;
+    led_id_msg.data.clear();
+    led_id_msg.data.push_back(csm.getLedNow());
+    led_id_pub.publish(led_id_msg);
 }
 
 void mnistNumCallback(const std_msgs::Int16MultiArray& msg)
@@ -45,7 +53,14 @@ void fireRectCallback(const std_msgs::Int16MultiArray& msg)
 
 void tickCallback(const std_msgs::Bool& msg)
 {
-    csm.tick(msg.data);
+    static std_msgs::Bool fire_ctr_msg;
+    static std_msgs::Bool mnist_ctr_msg;
+    if (csm.tick(msg.data)) {
+        fire_ctr_msg.data = true;
+        mnist_ctr_msg.data = true;
+        fire_ctr_pub.publish(fire_ctr_msg);
+        mnist_ctr_pub.publish(mnist_ctr_msg);
+    }
 }
 
 void csmTimerCallback(const ros::TimerEvent&)
@@ -72,6 +87,12 @@ int main(int argc, char* argv[])
         = nh.subscribe("buff/tick", 1, tickCallback);
     aim_num_pub
         = nh.advertise<std_msgs::Int16MultiArray>("buff/aim_rect", 1);
+    fire_ctr_pub
+        = nh.advertise<std_msgs::Bool>("buff/fire_ctr", 1);
+    mnist_ctr_pub
+        = nh.advertise<std_msgs::Bool>("buff/mnist_ctr", 1);
+    led_id_pub
+        = nh.advertise<std_msgs::Int16MultiArray>("buff/led_id", 1);
 
     ros::spin();
 

@@ -12,9 +12,11 @@ public:
 
     void process(vector<Mat>& block_roi);
     int getNumberBlockID(int number);
+    bool confirmNumber(int number);
 
 private:
     Classifier classifier;
     Mat kernel;
-    int results[10] = { 0 };
+    int results[10];
+    float results_value[10];
 };

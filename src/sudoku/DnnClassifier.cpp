@@ -17,9 +17,9 @@ void DnnClassifier::process(vector<Mat>& block_roi)
         predictions.push_back(classifier.Predict(block_roi[i]));
     }
 
-    float results_value[10] = { 0 };
     for (int i = 0; i < 10; ++i) {
         results[i] = -1;
+        results_value[i] = -1;
     }
 
     for (uint i = 0; i < predictions.size(); ++i) {
@@ -37,4 +37,9 @@ void DnnClassifier::process(vector<Mat>& block_roi)
 int DnnClassifier::getNumberBlockID(int number)
 {
     return results[number];
+}
+
+bool DnnClassifier::confirmNumber(int number)
+{
+    return results_value[number] > 0.8;
 }

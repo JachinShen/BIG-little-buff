@@ -4,7 +4,8 @@ static ros::Publisher             fire_num_pub;
 static ros::Publisher             fire_rect_pub;
 static cv_bridge::CvImageConstPtr cv_ptr;
 static DnnClassifier              fire_classifier;
-static vector<Rect> fire_rect;
+static vector<Rect>               fire_rect;
+static bool                       fire_run;
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
@@ -18,6 +19,11 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 
 void fireRectsCallback(const std_msgs::Int16MultiArray& msg)
 {
+    if (!fire_run) {
+        ROS_INFO("Ignore Fire!");
+        return;
+    }
+
     static Mat img, gray, binary, sudoku_roi;
     static vector<Mat> fire_roi;
     static Rect sudoku_rect;
@@ -66,6 +72,9 @@ void fireRectsCallback(const std_msgs::Int16MultiArray& msg)
     }
     imshow("Fire", fire_rect);
 #endif
+
+    fire_run = false;
+    ROS_INFO("Set Fire Stop!");
 }
 
 void ledNumCallback(const std_msgs::Int16MultiArray& msg)
@@ -90,6 +99,11 @@ void ledNumCallback(const std_msgs::Int16MultiArray& msg)
 void fireParamCallback(const std_msgs::Int16MultiArray& msg)
 {
     ROS_INFO_STREAM("Fire Param: " << msg.data[0]);
+}
+
+void fireCtrCallback(const std_msgs::Bool& msg)
+{
+    fire_run = msg.data;
 }
 
 void waitkeyTimerCallback(const ros::TimerEvent&)
@@ -118,6 +132,8 @@ int main(int argc, char* argv[])
         = nh.subscribe("buff/led_num", 1, ledNumCallback);
     ros::Subscriber fire_param_sub
         = nh.subscribe("buff/fire_param", 1, fireParamCallback);
+    ros::Subscriber fire_ctr_sub
+        = nh.subscribe("buff/fire_ctr", 1, fireCtrCallback);
 
     string model_file = "/home/jachinshen/Projects/lunar_ws/src/buff/caffemodels/fire_model.prototxt";
     string trained_file = "/home/jachinshen/Projects/lunar_ws/src/buff/caffemodels/fire_model.caffemodel";
@@ -125,6 +141,7 @@ int main(int argc, char* argv[])
     string label_file = "/home/jachinshen/Projects/lunar_ws/src/buff/caffemodels/synset_words.txt";
 
     fire_classifier.init(model_file, trained_file, mean_file, label_file);
+    fire_run = true;
 
     ros::spin();
 
