@@ -2,15 +2,29 @@
 #include "sudoku/BlockSplit.h"
 #include "Headers.h"
 
-static Mat frame;
-static Rect aim_rect;
-static KCFTracker tracker(false, true, false, false);
+static Mat                        frame;
+static Rect                       aim_rect;
+static KCFTracker                 tracker(false, true, false, false);
+static cv_bridge::CvImageConstPtr cv_ptr;
+
+void imageCallback(const sensor_msgs::ImageConstPtr& msg)
+{
+    try {
+        cv_ptr = cv_bridge::toCvShare(msg, sensor_msgs::image_encodings::BGR8);
+    } catch (cv_bridge::Exception& e) {
+        ROS_ERROR("cv_bridge exception: %s", e.what());
+        return;
+    }
+}
 
 void aimRectCallback(const std_msgs::Int16MultiArray& msg)
 {
     aim_rect = Rect(msg.data[0], msg.data[1], msg.data[2], msg.data[3]);
     ROS_INFO_STREAM("Aim Rect: " << aim_rect);
-    tracker.init(aim_rect, frame);
+    
+    static Mat car_image;
+    cvtColor(cv_ptr->image.clone(), car_image, CV_BGR2GRAY);
+    tracker.init(aim_rect, car_image);
 }
 
 int main(int argc, char* argv[])
@@ -26,6 +40,9 @@ int main(int argc, char* argv[])
     ros::Rate loop_rate(10);
 
     ros::Subscriber aim_sub = nh.subscribe("buff/aim_rect", 1, aimRectCallback);
+    image_transport::ImageTransport it(nh);
+    image_transport::Subscriber sub
+        = it.subscribe("camera/image", 1, imageCallback);
 
     Rect led_rect, sudoku_rect;
     enum {VIDEO_FILE, VIDEO_CAMERA} video_type;

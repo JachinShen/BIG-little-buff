@@ -20,7 +20,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
     static Mat img, gray, binary;
     Rect led_rect, sudoku_rect;
 
-    img = cv_bridge::toCvShare(msg, "bgr8")->image;
+    img = cv_bridge::toCvShare(msg, "bgr8")->image.clone();
     if (img.empty())
         return;
 
