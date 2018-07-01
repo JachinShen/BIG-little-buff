@@ -2,16 +2,20 @@
 #include "sudoku/BlockSplit.h"
 #include "Headers.h"
 
+static Mat frame;
 static Rect aim_rect;
+static KCFTracker tracker(false, true, false, false);
 
 void aimRectCallback(const std_msgs::Int16MultiArray& msg)
 {
     aim_rect = Rect(msg.data[0], msg.data[1], msg.data[2], msg.data[3]);
+    ROS_INFO_STREAM("Aim Rect: " << aim_rect);
+    tracker.init(aim_rect, frame);
 }
 
 int main(int argc, char* argv[])
 {
-    ROS_INFO("Start!");
+    ROS_INFO("Aim Start!");
     if (argv[1] == NULL) {
         ROS_ERROR("argv[1]=NULL, no video source\n");
         return 1;
@@ -19,13 +23,12 @@ int main(int argc, char* argv[])
 
     ros::init(argc, argv, "aim");
     ros::NodeHandle nh;
+    ros::Rate loop_rate(10);
 
     ros::Subscriber aim_sub = nh.subscribe("buff/aim_rect", 1, aimRectCallback);
 
-    Mat frame;
     Rect led_rect, sudoku_rect;
     enum {VIDEO_FILE, VIDEO_CAMERA} video_type;
-    KCFTracker tracker(false, true, false, false);
     while(nh.ok()) {
         cv::VideoCapture cap;
         if ('0' <= argv[1][0] && argv[1][0] <= '9') {
@@ -49,8 +52,14 @@ int main(int argc, char* argv[])
             if (frame.channels() != 1) {
                 cvtColor(frame, frame, CV_BGR2GRAY);
             }
-            imshow("src", frame);
-            waitKey(0);
+            ros::spinOnce();
+            if (aim_rect.area() != 0) {
+                aim_rect = tracker.update(frame);
+                rectangle(frame, aim_rect, 255, 4);
+            }
+            imshow("aim src", frame);
+            waitKey(1);
+            loop_rate.sleep();
         }
     }
 

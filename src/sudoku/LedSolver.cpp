@@ -100,13 +100,16 @@ bool LedSolver::process(Mat& led_roi)
         digits.push_back(bound);
     }
 
-    if (digits.size() > 5 || digits.size() == 0) {
+    if (digits.size() != 5) {
         ROS_INFO("Clear vector");
         digits.clear(); // add for secure, otherwise munmap_chunk() error will be raised if there are too many elements in the vector (about 30)
         return false;
     }
 
-    sort(digits.begin(), digits.begin()+digits.size()-1, compareRect);
+    sort(digits.begin(), digits.end(), compareRect);
+    for (int i=0; i<5; ++i) {
+        results[i] = -1;
+    }
 
     for (uint i = 0; i < digits.size(); ++i) {
         float hw_ratio = (float)digits[i].height / digits[i].width;
@@ -239,4 +242,14 @@ int LedSolver::getResult(int index)
     if (index >= 5 || index < 0)
         return -1;
     return results[index];
+}
+
+bool LedSolver::confirmLed()
+{
+    for (int i=0; i<5; ++i) {
+        if (results[i] == -1) {
+            return false;
+        }
+    }
+    return true;
 }

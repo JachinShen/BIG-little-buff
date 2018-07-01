@@ -25,7 +25,7 @@ int main(int argc, char** argv)
 
     cv::Mat frame;
     sensor_msgs::ImagePtr msg;
-    ros::Rate loop_rate(30);
+    ros::Rate loop_rate(10);
     enum {VIDEO_FILE, VIDEO_CAMERA} video_type;
     while (nh.ok()) {
         cv::VideoCapture cap;
@@ -56,7 +56,7 @@ int main(int argc, char** argv)
             }
 
             if (video_type == VIDEO_FILE)
-                waitKey(0);
+                waitKey(1);
             else if (video_type == VIDEO_CAMERA)
                 waitKey(1);
 

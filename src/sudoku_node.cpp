@@ -3,6 +3,7 @@
 static ros::Publisher led_rect_pub;
 static ros::Publisher sudoku_rect_pub;
 static BlockSplit     block_split;
+static bool           sudoku_run;
 
 void sudokuParamCallback(const std_msgs::Int16MultiArray& msg)
 {
@@ -11,6 +12,11 @@ void sudokuParamCallback(const std_msgs::Int16MultiArray& msg)
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
+    if (!sudoku_run) {
+        ROS_INFO("Ignore Sudoku!");
+        return;
+    }
+
     static Mat img, gray, binary;
     Rect led_rect, sudoku_rect;
 
@@ -34,9 +40,16 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
         sudoku_rect_msg.data.push_back(sudoku_rect.width);
         sudoku_rect_msg.data.push_back(sudoku_rect.height);
         sudoku_rect_pub.publish(sudoku_rect_msg);
+
+        sudoku_run = false;
     } else {
         ROS_INFO("No Sudoku Found!");
     }
+}
+
+void sudokuCtrCallback(const std_msgs::Bool& msg)
+{
+    sudoku_run = msg.data;
 }
 
 void waitkeyTimerCallback(const ros::TimerEvent&)
@@ -50,15 +63,17 @@ int main(int argc, char* argv[])
     ros::NodeHandle nh;
     ros::Timer waitkey_timer = nh.createTimer(ros::Duration(0.1), waitkeyTimerCallback);
 
-    ROS_INFO("Start!");
+    ROS_INFO("Sudoku Start!");
 
     led_rect_pub    = nh.advertise<std_msgs::Int16MultiArray>("buff/led_rect",    1);
-    sudoku_rect_pub = nh.advertise<std_msgs::Int16MultiArray>("buff/sudoku_rect", 1);
+    sudoku_rect_pub = nh.advertise<std_msgs::Int16MultiArray>("buff/sudoku_rect", 1, true);
 
     image_transport::ImageTransport it(nh);
     image_transport::Subscriber sub = it.subscribe("camera/image", 1, imageCallback);
     ros::Subscriber sudoku_param_sub = nh.subscribe("buff/sudoku_param", 1, sudokuParamCallback);
+    ros::Subscriber sudoku_ctr_sub = nh.subscribe("buff/sudoku_ctr", 1, sudokuCtrCallback);
 
+    sudoku_run = true;
     block_split.init();
     ros::spin();
 

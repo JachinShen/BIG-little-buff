@@ -14,6 +14,7 @@ public:
     bool process(Mat& led_roi);
     int getResult(int index);
     void setParam(int index, int value);
+    bool confirmLed();
 
 	enum LedParam{
 		RED_THRESHOLD,

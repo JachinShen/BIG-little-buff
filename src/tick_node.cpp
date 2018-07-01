@@ -29,12 +29,12 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
         resize(roi, roi, roi_last.size());
         bitwise_xor(roi, roi_last, roi_diff);
 
-        imshow("roi", roi);
-        imshow("roi last", roi_last);
+        //imshow("roi", roi);
+        //imshow("roi last", roi_last);
         imshow("roi diff", roi_diff);
 
         float difference = (float) countNonZero(roi_diff) / (roi_diff.cols * roi_diff.rows);
-        ROS_INFO_STREAM("Difference: " << difference);
+        //ROS_INFO_STREAM("Difference: " << difference);
 
         tick_msg.data = difference > 0.1;
         tick_pub.publish(tick_msg);

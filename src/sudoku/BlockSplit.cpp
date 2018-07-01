@@ -146,7 +146,7 @@ bool BlockSplit::process(Mat& input, Rect& led_rect,
     imshow("sudoku draw", draw);
     imshow("sudoku binary", binary);
 
-    if (side_blocks.size() < 8)
+    if (side_blocks.size() != 10)
         return false;
 
     int top_left_x = input.cols,
