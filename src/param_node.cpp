@@ -155,6 +155,10 @@ int main(int argc, char* argv[])
             LED_PARAM + i);
     }
 
+    for (int i=0; i < BlockSplit::PARAM_SIZE || i < LedSolver::PARAM_SIZE; ++i) {
+        updateAllParam();
+    }
+
     ros::spin();
 
     return 0;

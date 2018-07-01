@@ -14,11 +14,6 @@ public:
     void setSudokuFound();
     void checkLed();
     int  getLedNow();
-    //bool getSudokuRun();
-    //bool getLedRun();
-    //bool getMnistRun();
-    //bool getPublishRun();
-
 
 private:
     enum State {

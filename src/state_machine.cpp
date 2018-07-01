@@ -18,12 +18,12 @@ void ControlSM::transferState(State s)
 
 void ControlSM::init()
 {
-    state      = WAIT;
-    publish_run= true;
-    led_remain = false;
-    rising_edge = false;
-    falling_edge = false;
-    sudoku_found = false;
+    state            = WAIT;
+    publish_run      = true;
+    led_remain       = false;
+    rising_edge      = false;
+    falling_edge     = false;
+    sudoku_found     = false;
     mnist_id_publish = false;
     freshCtr();
 
@@ -33,13 +33,17 @@ void ControlSM::init()
     for (int i = 0; i < 5; ++i)
         sudoku[i] = -1;
 
-    state_to_str[WAIT] = "WAIT";
-    state_to_str[READY] = "READY";
-    state_to_str[LED_ONE] = "LED_ONE";
-    state_to_str[ONE_TWO] = "ONE_TWO";
-    state_to_str[LED_TWO] = "LED_TWO";
-    state_to_str[TWO_THREE] = "TWO_THREE";
-    state_to_str[LED_THREE] = "LED_THREE";
+    state_to_str[WAIT]       = "WAIT";
+    state_to_str[READY]      = "READY";
+    state_to_str[LED_ONE]    = "LED_ONE";
+    state_to_str[ONE_TWO]    = "ONE_TWO";
+    state_to_str[LED_TWO]    = "LED_TWO";
+    state_to_str[TWO_THREE]  = "TWO_THREE";
+    state_to_str[LED_THREE]  = "LED_THREE";
+    state_to_str[THREE_FOUR] = "THREE_FOUR";
+    state_to_str[LED_FOUR]   = "LED_FOUR";
+    state_to_str[FOUR_FIVE]  = "FOUR_FIVE";
+    state_to_str[LED_FIVE]   = "LED_FIVE";
 
 }
 
@@ -53,22 +57,25 @@ void ControlSM::run()
             break;
         case READY:
             if (led[0] != -1) {
-                if (sudoku[led[0]] != -1) {
+                ROS_INFO_STREAM("Ready Sudoku Confirm: " << sudoku_confirm[led[0]]);
+                if (sudoku[led[0]] != -1 && sudoku_confirm[led[0]] > 50) {
                     transferState(LED_ONE);
                 }
             }
             break;
         case LED_ONE:
             if (rising_edge) {
+                rising_edge = false;
                 memcpy(led_last, led, sizeof(led));
                 transferState(ONE_TWO);
             }
             break;
         case ONE_TWO:
             if (falling_edge) {
-                if (led_remain) {
+                falling_edge = false;
+                if (led_remain && sudoku_confirm[led[1]] > 50) {
                     transferState(LED_TWO);
-                } else if (led[0] != -1) {
+                } else if (led[0] != -1 && sudoku_confirm[led[0]] > 50) {
                     transferState(LED_ONE);
                 } else {
                     transferState(WAIT);
@@ -98,8 +105,8 @@ void ControlSM::setSudoku(vector<int16_t> data)
         sudoku_last[i] = sudoku[i];
         sudoku[i] = data[i];
     }
-    for (uint i=10; i<20; ++i) {
-        sudoku_confirm[i] = data[i];
+    for (uint i=0; i<10; ++i) {
+        sudoku_confirm[i] = data[i+10];
     }
 }
 
@@ -138,14 +145,17 @@ void ControlSM::publishMnist(ros::Publisher& mnist_pub)
 {
     if (!mnist_id_publish)
         return;
+    static std_msgs::Int16MultiArray mnist_msg;
+    mnist_msg.data.clear();
     if (state >= LED_ONE) {
-        static std_msgs::Int16MultiArray mnist_msg;
-        mnist_msg.data.clear();
         mnist_msg.data.push_back(sudoku[getLedNow()]);
-        mnist_pub.publish(mnist_msg);
         ROS_INFO_STREAM("Publish Mnist Id: " << sudoku[getLedNow()]);
-        mnist_id_publish = false;
+    } else {
+        mnist_msg.data.push_back(-1);
+        ROS_INFO_STREAM("No target");
     }
+    mnist_id_publish = false;
+    mnist_pub.publish(mnist_msg);
 }
 
 int ControlSM::getLedNow()
@@ -155,39 +165,16 @@ int ControlSM::getLedNow()
     return led[state / 2 - 1];
 }
 
-//bool ControlSM::getLedRun()
-//{
-    //return led_run;
-//}
-
-//bool ControlSM::getMnistRun()
-//{
-    //return mnist_run;
-//}
-
-//bool ControlSM::getSudokuRun()
-//{
-    //return sudoku_run;
-//}
-
-//bool ControlSM::getPublishRun()
-//{
-    //if (publish_run) {
-        //publish_run = false;
-        //return true;
-    //} else {
-        //return false;
-    //}
-//}
-
 void ControlSM::freshCtr()
 {
     switch (state) {
     case WAIT:
+        mnist_id_publish = true;
         sudoku_run = true;
         sudoku_found = led_run = mnist_run = tick_run = false;
         break;
     case READY:
+        mnist_id_publish = true;
         led_run = mnist_run = tick_run = true;
         sudoku_run = false;
         break;
@@ -222,19 +209,15 @@ void ControlSM::tick(bool msg_data)
     if (on_change == false && msg_data == true) {
         on_change    = true;
         rising_edge  = true;
-        falling_edge = false;
         ROS_INFO("Rising Edge!");
         return;
     }
     if (on_change == true && msg_data == false) {
         on_change    = false;
-        rising_edge  = false;
         falling_edge = true;
         ROS_INFO("Falling Edge!");
         return;
     }
-    rising_edge  = false;
-    falling_edge = false;
 }
 
 void ControlSM::transferNext()

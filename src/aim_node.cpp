@@ -21,6 +21,9 @@ void aimRectCallback(const std_msgs::Int16MultiArray& msg)
 {
     aim_rect = Rect(msg.data[0], msg.data[1], msg.data[2], msg.data[3]);
     ROS_INFO_STREAM("Aim Rect: " << aim_rect);
+
+    if (aim_rect.area() == 0)
+        return;
     
     static Mat car_image;
     cvtColor(cv_ptr->image.clone(), car_image, CV_BGR2GRAY);

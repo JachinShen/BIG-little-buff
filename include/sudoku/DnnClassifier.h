@@ -12,7 +12,7 @@ public:
 
     void process(vector<Mat>& block_roi);
     int getNumberBlockID(int number);
-    bool confirmNumber(int number);
+    int confirmNumber(int number);
 
 private:
     Classifier classifier;

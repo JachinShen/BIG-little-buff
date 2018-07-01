@@ -39,7 +39,7 @@ int DnnClassifier::getNumberBlockID(int number)
     return results[number];
 }
 
-bool DnnClassifier::confirmNumber(int number)
+int DnnClassifier::confirmNumber(int number)
 {
-    return results_value[number] > 0.8;
+    return results_value[number] * 100;
 }

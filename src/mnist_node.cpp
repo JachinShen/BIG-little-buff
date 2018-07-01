@@ -5,7 +5,6 @@ static     ros::Publisher             aim_rect_pub;
 static     cv_bridge::CvImageConstPtr cv_ptr;
 static     DnnClassifier              mnist_classifier;
 static     bool                       mnist_run;
-//static int                        led_num[5];
 static     Rect                       sudoku_rect;
 static     vector<Rect>               mnist_rect;
 
@@ -91,17 +90,6 @@ void handwriteRectsCallback(const std_msgs::Int16MultiArray& msg)
     sudoku_rect = Rect(msg.data[0], msg.data[1], msg.data[2], msg.data[3]);
 }
 
-//void ledNumCallback(const std_msgs::Int16MultiArray& msg)
-//{
-    //if (msg.data.size() != 5) {
-        //ROS_ERROR("Mnist Led Number");
-        //return;
-    //}
-    //for (uint i=0; i<5; ++i) {
-        //led_num[i] = msg.data[i];
-    //}
-//}
-
 void mnistParamCallback(const std_msgs::Int16MultiArray& msg)
 {
     ROS_INFO_STREAM("Mnist Param: " << msg.data[0]);
@@ -119,13 +107,20 @@ void mnistIdCallback(const std_msgs::Int16MultiArray& msg)
     static Rect aim_rect;
     ROS_INFO_STREAM("Mnist Get Id: " << msg.data[0]);
     aim_rect_msg.data.clear();
-    aim_rect = mnist_rect[msg.data[0]-1];
-    aim_rect.x += sudoku_rect.x;
-    aim_rect.y += sudoku_rect.y;
-    aim_rect_msg.data.push_back(aim_rect.x);
-    aim_rect_msg.data.push_back(aim_rect.y);
-    aim_rect_msg.data.push_back(aim_rect.width);
-    aim_rect_msg.data.push_back(aim_rect.height);
+    if (msg.data[0] >= 1) {
+        aim_rect = mnist_rect[msg.data[0]-1];
+        aim_rect.x += sudoku_rect.x;
+        aim_rect.y += sudoku_rect.y;
+        aim_rect_msg.data.push_back(aim_rect.x);
+        aim_rect_msg.data.push_back(aim_rect.y);
+        aim_rect_msg.data.push_back(aim_rect.width);
+        aim_rect_msg.data.push_back(aim_rect.height);
+    } else {
+        aim_rect_msg.data.push_back(0);
+        aim_rect_msg.data.push_back(0);
+        aim_rect_msg.data.push_back(0);
+        aim_rect_msg.data.push_back(0);
+    }
     aim_rect_pub.publish(aim_rect_msg);
 }
 
@@ -149,8 +144,6 @@ int main(int argc, char* argv[])
         = it.subscribe("camera/image", 1, imageCallback);
     ros::Subscriber sudoku_rect_sub
         = nh.subscribe("buff/sudoku_rect", 1, handwriteRectsCallback);
-    //ros::Subscriber led_id_sub
-        //= nh.subscribe("buff/led_num", 1, ledNumCallback);
     ros::Subscriber mnist_param_sub
         = nh.subscribe("buff/mnist_param", 1, mnistParamCallback);
     ros::Subscriber mnist_ctr_sub
