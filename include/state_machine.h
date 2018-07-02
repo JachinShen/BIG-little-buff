@@ -14,6 +14,7 @@ public:
     void setSudokuFound();
     void checkLed();
     int  getLedNow();
+    int  getBlockIdNow();
 
 private:
     enum State {

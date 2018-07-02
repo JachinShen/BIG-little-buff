@@ -24,7 +24,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
     if (img.empty())
         return;
 
-    if (block_split.process(img, led_rect, sudoku_rect)) {
+    if (block_split.processMnist(img, led_rect, sudoku_rect)) {
         ROS_INFO_STREAM("Led Rect: " << led_rect);
         std_msgs::Int16MultiArray led_rect_msg;
         led_rect_msg.data.push_back(led_rect.x);

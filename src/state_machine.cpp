@@ -165,6 +165,13 @@ int ControlSM::getLedNow()
     return led[state / 2 - 1];
 }
 
+int ControlSM::getBlockIdNow()
+{
+    if (state <= READY)
+        return -1;
+    return sudoku[getLedNow()];
+}
+
 void ControlSM::freshCtr()
 {
     switch (state) {

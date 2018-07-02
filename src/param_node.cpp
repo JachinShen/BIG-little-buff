@@ -9,8 +9,8 @@ static std_msgs::Int16MultiArray sudoku_param_msg;
 
 static int SUDOKU_PARAM[BlockSplit::PARAM_SIZE] = {
     120,
-    500,
-    2000,
+    4000,
+    10000,
     30,
     100,
     70
