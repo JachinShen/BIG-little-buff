@@ -37,6 +37,10 @@ void process()
             led_num_msg.data.push_back(-1);
         led_num_pub.publish(led_num_msg);
     }
+
+    if (led_solver.confirmLed()) {
+        led_run = false;
+    }
 }
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)

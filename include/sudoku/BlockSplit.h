@@ -22,7 +22,7 @@ public:
     BlockSplit();
     ~BlockSplit();
     void init();
-    //bool processMnist(Mat& input, Rect& led_rect, vector<Rect>& handwrite_rects);
+    bool processMnist(Mat& input, Rect& led_rect, Rect& sudoku_rect);
     bool process(Mat& input, Rect& led_rect, Rect& sudoku_rect);
     void setParam(int index, int data);
     //void createSudokuParamTrackbar(char * window_name, cv::TrackbarCallback * callbackFunc);

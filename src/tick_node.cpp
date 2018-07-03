@@ -23,7 +23,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 
     roi = img(sudoku_rect);
     cvtColor(roi, roi, CV_BGR2GRAY);
-    threshold(roi, roi, 128, 255, CV_THRESH_BINARY);
+    threshold(roi, roi, 100, 255, CV_THRESH_BINARY);
 
     if (!roi_last.empty()) {
         resize(roi, roi, roi_last.size());
@@ -36,7 +36,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
         float difference = (float) countNonZero(roi_diff) / (roi_diff.cols * roi_diff.rows);
         //ROS_INFO_STREAM("Difference: " << difference);
 
-        tick_msg.data = difference > 0.1;
+        tick_msg.data = difference > 0.06;
         tick_pub.publish(tick_msg);
     }
 

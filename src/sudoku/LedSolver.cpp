@@ -10,7 +10,7 @@ void LedSolver::init()
 {
     //svm    = SVM::create();
     //svm    = svm->load(file);
-    kernel = getStructuringElement(MORPH_RECT, Size(3, 3));
+    kernel = getStructuringElement(MORPH_RECT, Size(2, 2));
     //hog    = new cv::HOGDescriptor(cvSize(28, 28), cvSize(14, 14), cvSize(7, 7), cvSize(7, 7), 9);
 
     for (int i = 0; i < 5; ++i)

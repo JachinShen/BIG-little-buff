@@ -70,6 +70,10 @@ void process() {
     imshow("Mnist", img_roi);
 #endif
 
+    if (mnist_classifier.confirm()) {
+        mnist_run = false;
+    }
+
 }
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)

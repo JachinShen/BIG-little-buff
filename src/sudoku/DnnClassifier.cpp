@@ -43,3 +43,13 @@ int DnnClassifier::confirmNumber(int number)
 {
     return results_value[number] * 100;
 }
+
+bool DnnClassifier::confirm()
+{
+    for (int i=0; i<0; ++i) {
+        if (results_value[i] < 0.8) {
+            return false;
+        }
+    }
+    return true;
+}

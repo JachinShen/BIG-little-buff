@@ -14,6 +14,8 @@ public:
     void setSudokuFound();
     void checkLed();
     int  getLedNow();
+    int  getBlockIdNow();
+    bool serial_send;
 
 private:
     enum State {
@@ -54,6 +56,8 @@ private:
     bool led_run;
 
     bool mnist_id_publish;
+    bool sudoku_fresh;
+    bool led_fresh;
 
     void transferState(State s);
     void transferNext();

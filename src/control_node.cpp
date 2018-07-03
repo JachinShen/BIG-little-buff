@@ -1,4 +1,5 @@
 #include "state_machine.h"
+#include "OpenUart.h"
 
 static ros::Publisher aim_num_pub;
 static ros::Publisher sudoku_ctr_pub;
@@ -72,6 +73,21 @@ void csmTimerCallback(const ros::TimerEvent&)
     csm.run();
     csm.publishSudokuLedMnist(sudoku_ctr_pub, led_ctr_pub, mnist_ctr_pub);
     csm.publishMnist(mnist_id_pub);
+    if (csm.getBlockIdNow() > 0) {
+        if (csm.serial_send) {
+            csm.serial_send = false;
+            char block_id = csm.getBlockIdNow();
+            ROS_INFO_STREAM("UART Write: " << (int)block_id);
+            int n = ::write(fd, &block_id,1);
+            if (n<0) {
+                ROS_ERROR("UART Write");
+            } else {
+                char buffer[20];
+                ::read(fd, buffer, 20);
+                ROS_INFO_STREAM("Get UART:" << buffer);
+            }
+        }
+    }
     //static std_msgs::Bool sudoku_ctr_msg;
     //static std_msgs::Bool led_ctr_msg;
     //static std_msgs::Bool mnist_ctr_msg;
