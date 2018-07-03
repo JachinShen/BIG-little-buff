@@ -15,7 +15,7 @@ public:
     void checkLed();
     int  getLedNow();
     int  getBlockIdNow();
-    bool serial_send;
+    //bool serial_send;
 
 private:
     enum State {

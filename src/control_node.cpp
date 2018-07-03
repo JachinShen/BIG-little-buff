@@ -73,33 +73,6 @@ void csmTimerCallback(const ros::TimerEvent&)
     csm.run();
     csm.publishSudokuLedMnist(sudoku_ctr_pub, led_ctr_pub, mnist_ctr_pub);
     csm.publishMnist(mnist_id_pub);
-    if (csm.getBlockIdNow() > 0) {
-        if (csm.serial_send) {
-            csm.serial_send = false;
-            char block_id = csm.getBlockIdNow();
-            ROS_INFO_STREAM("UART Write: " << (int)block_id);
-            int n = ::write(fd, &block_id,1);
-            if (n<0) {
-                ROS_ERROR("UART Write");
-            } else {
-                char buffer[20];
-                ::read(fd, buffer, 20);
-                ROS_INFO_STREAM("Get UART:" << buffer);
-            }
-        }
-    }
-    //static std_msgs::Bool sudoku_ctr_msg;
-    //static std_msgs::Bool led_ctr_msg;
-    //static std_msgs::Bool mnist_ctr_msg;
-    //static std_msgs::Bool fire_ctr_msg;
-    //if (csm.getPublishRun()) {
-        //sudoku_ctr_msg.data = csm.getSudokuRun();
-        //sudoku_ctr_pub.publish(sudoku_ctr_msg);
-        //led_ctr_msg.data = csm.getLedRun();
-        //led_ctr_pub.publish(led_ctr_msg);
-        //mnist_ctr_msg.data = csm.getMnistRun();
-        //mnist_ctr_pub.publish(mnist_ctr_msg);
-    //}
 }
 
 int main(int argc, char* argv[])
