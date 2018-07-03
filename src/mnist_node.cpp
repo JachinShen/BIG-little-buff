@@ -51,6 +51,7 @@ void process() {
         mnist_roi.push_back(roi);
     }
 
+    //TODO: Try to process the 9 blocks as a batch.
     mnist_classifier.process(mnist_roi);
 
     static std_msgs::Int16MultiArray mnist_num_msg;

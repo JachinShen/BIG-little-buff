@@ -16,38 +16,30 @@ void LedSolver::init()
     for (int i = 0; i < 5; ++i)
         results[i] = -1;
 
-	param[RED_THRESHOLD]          = 128;
-	param[GRAY_THRESHOLD]         = 128;
-	param[BOUND_AREA_MAX]         = 30;
-	param[BOUND_AREA_MAX]         = 100;
-	param[HW_RATIO_MIN]           = 130;
-	param[HW_RATIO_MAX]           = 1000;
-	param[HW_RATIO_FOR_DIGIT_ONE] = 250;
-	param[ROTATION_DEGREE]        = 5;
-
-    //RED_THRESHOLD = 128;
-    //GRAY_THRESHOLD = 128;
+    param[RED_THRESHOLD] = 128;
+    param[GRAY_THRESHOLD] = 128;
+    param[BOUND_AREA_MAX] = 30;
+    param[BOUND_AREA_MAX] = 100;
+    param[HW_RATIO_MIN] = 130;
+    param[HW_RATIO_MAX] = 1000;
+    param[HW_RATIO_FOR_DIGIT_ONE] = 250;
+    param[ROTATION_DEGREE] = 5;
 }
 
 LedSolver::~LedSolver()
 {
     //if (hog != NULL)
-        //delete hog;
+    //delete hog;
 }
 
 void LedSolver::setParam(int index, int value)
 {
-	if (0 <= index && index < PARAM_SIZE) {
+    if (0 <= index && index < PARAM_SIZE) {
         param[index] = value;
         return;
     } else {
         cout << "Set Param Error!" << endl;
     }
-    //switch(index) {
-      //  case 1: RED_THRESHOLD = value; break;
-      //  case 2: GRAY_THRESHOLD = value; break;
-      //  default: break;
-    //}
 }
 
 void LedSolver::getRed(Mat& led_roi, Mat& led_roi_binary)
@@ -64,6 +56,8 @@ void LedSolver::getRed(Mat& led_roi, Mat& led_roi_binary)
     threshold(led_roi_red, led_roi_red, param[RED_THRESHOLD], 255, THRESH_BINARY);
 
     led_roi_binary = led_roi_red & led_roi_gray;
+    //TODO: The dilated image is good for find Contour, but not for number recognization.
+    //We can extract the position and then recognize the number from the origin binary image.
     dilate(led_roi_binary, led_roi_binary, kernel);
     imshow("Led Red Binary: ", led_roi_binary);
 }
@@ -74,7 +68,10 @@ bool LedSolver::process(Mat& led_roi)
 #if DRAW == SHOW_ALL
     static Mat draw;
 #endif
-    vector<vector<Point> > contours;
+    vector<vector<Point>> contours;
+    //TODO: The position of digits doesn't change often
+    //We can check whether we can extract number from the old position
+    //If not, extract the position again.
     vector<Rect> digits;
 
 #if DRAW == SHOW_ALL
@@ -93,13 +90,14 @@ bool LedSolver::process(Mat& led_roi)
         float hw_ratio = (float)bound.height / bound.width;
         if (hw_ratio < 1.0)
             continue;
-            //hw_ratio = 1.0 / hw_ratio;
+        //hw_ratio = 1.0 / hw_ratio;
         //cout << "HW ratio: " << hw_ratio << endl;
-        if (hw_ratio < param[HW_RATIO_MIN]/100.0 || hw_ratio > param[HW_RATIO_MAX]/100.0)
+        if (hw_ratio < param[HW_RATIO_MIN] / 100.0 || hw_ratio > param[HW_RATIO_MAX] / 100.0)
             continue;
         digits.push_back(bound);
     }
 
+    //TODO: If the begin and end of the digits is found, we can guess the other ones.
     if (digits.size() != 5) {
         ROS_INFO("Clear vector");
         digits.clear(); // add for secure, otherwise munmap_chunk() error will be raised if there are too many elements in the vector (about 30)
@@ -107,7 +105,7 @@ bool LedSolver::process(Mat& led_roi)
     }
 
     sort(digits.begin(), digits.end(), compareRect);
-    for (int i=0; i<5; ++i) {
+    for (int i = 0; i < 5; ++i) {
         results[i] = -1;
     }
 
@@ -115,7 +113,7 @@ bool LedSolver::process(Mat& led_roi)
         float hw_ratio = (float)digits[i].height / digits[i].width;
         if (hw_ratio < 1.0)
             hw_ratio = 1.0 / hw_ratio;
-        if (hw_ratio > param[HW_RATIO_FOR_DIGIT_ONE]/100.0) {
+        if (hw_ratio > param[HW_RATIO_FOR_DIGIT_ONE] / 100.0) {
             results[i] = 1;
             continue;
         }
@@ -180,39 +178,35 @@ int LedSolver::predictCross(Mat& roi)
     int one_twelvth_y = roi.rows / 12;
     int segment = 0x00;
     int segment_hit[7] = { 0 };
-    int supporta[7] = {0}, supportb[7] = {0};
+    int supporta[7] = { 0 }, supportb[7] = { 0 };
 
-    segment_hit[0] = (	scanSegmentY(roi, one_third_y, 					0, mid_x));
-    supporta[0] = 			scanSegmentY(roi, one_third_y-one_twelvth_y, 	0, mid_x);
-    supportb[0] = 			scanSegmentY(roi, one_third_y+one_twelvth_y, 	0, mid_x);
-    
-    segment_hit[1] = (	scanSegmentY(roi, one_third_y, 					mid_x, roi.cols));
-    supporta[1] = 			scanSegmentY(roi, one_third_y-one_twelvth_y, 	mid_x, roi.cols);
-    supportb[1] = 			scanSegmentY(roi, one_third_y+one_twelvth_y, 	mid_x, roi.cols);
-    
-    segment_hit[2] = (	scanSegmentY(roi, two_thirds_y, 				0, mid_x));
-    supporta[2] = 			scanSegmentY(roi, two_thirds_y-one_twelvth_y, 	0, mid_x);
-    supportb[2] = 			scanSegmentY(roi, two_thirds_y+one_twelvth_y, 	0, mid_x);
-    
-    segment_hit[3] = (	scanSegmentY(roi, two_thirds_y, 				mid_x, roi.cols));
-    supporta[3] = 			scanSegmentY(roi, two_thirds_y-one_twelvth_y, 	mid_x, roi.cols);
-    supportb[3] = 			scanSegmentY(roi, two_thirds_y+one_twelvth_y, 	mid_x, roi.cols);
-    
-    segment_hit[4] = (	scanSegmentX(roi, mid_x, 				0, one_third_y));
-    supporta[4] = 			scanSegmentX(roi, mid_x-one_sixth_x, 	0, one_third_y);
-    supportb[4] = 			scanSegmentX(roi, mid_x+one_sixth_x, 	0, one_third_y);
-    
-    segment_hit[5] = (scanSegmentX(roi, mid_x, 					one_third_y, two_thirds_y));
-    supporta[5] = 			scanSegmentX(roi, mid_x-one_sixth_x, 	one_third_y, two_thirds_y);
-    supportb[5] = 			scanSegmentX(roi, mid_x+one_sixth_x, 	one_third_y, two_thirds_y);
-    
-    segment_hit[6] = (	scanSegmentX(roi, mid_x, 				two_thirds_y, roi.rows));
-    supporta[6] = 			scanSegmentX(roi, mid_x-one_sixth_x, 	two_thirds_y, roi.rows);
-    supportb[6] = 			scanSegmentX(roi, mid_x+one_sixth_x, 	two_thirds_y, roi.rows);
-    
-    
+    segment_hit[0] = (scanSegmentY(roi, one_third_y, 0, mid_x));
+    supporta[0] = scanSegmentY(roi, one_third_y - one_twelvth_y, 0, mid_x);
+    supportb[0] = scanSegmentY(roi, one_third_y + one_twelvth_y, 0, mid_x);
 
-	
+    segment_hit[1] = (scanSegmentY(roi, one_third_y, mid_x, roi.cols));
+    supporta[1] = scanSegmentY(roi, one_third_y - one_twelvth_y, mid_x, roi.cols);
+    supportb[1] = scanSegmentY(roi, one_third_y + one_twelvth_y, mid_x, roi.cols);
+
+    segment_hit[2] = (scanSegmentY(roi, two_thirds_y, 0, mid_x));
+    supporta[2] = scanSegmentY(roi, two_thirds_y - one_twelvth_y, 0, mid_x);
+    supportb[2] = scanSegmentY(roi, two_thirds_y + one_twelvth_y, 0, mid_x);
+
+    segment_hit[3] = (scanSegmentY(roi, two_thirds_y, mid_x, roi.cols));
+    supporta[3] = scanSegmentY(roi, two_thirds_y - one_twelvth_y, mid_x, roi.cols);
+    supportb[3] = scanSegmentY(roi, two_thirds_y + one_twelvth_y, mid_x, roi.cols);
+
+    segment_hit[4] = (scanSegmentX(roi, mid_x, 0, one_third_y));
+    supporta[4] = scanSegmentX(roi, mid_x - one_sixth_x, 0, one_third_y);
+    supportb[4] = scanSegmentX(roi, mid_x + one_sixth_x, 0, one_third_y);
+
+    segment_hit[5] = (scanSegmentX(roi, mid_x, one_third_y, two_thirds_y));
+    supporta[5] = scanSegmentX(roi, mid_x - one_sixth_x, one_third_y, two_thirds_y);
+    supportb[5] = scanSegmentX(roi, mid_x + one_sixth_x, one_third_y, two_thirds_y);
+
+    segment_hit[6] = (scanSegmentX(roi, mid_x, two_thirds_y, roi.rows));
+    supporta[6] = scanSegmentX(roi, mid_x - one_sixth_x, two_thirds_y, roi.rows);
+    supportb[6] = scanSegmentX(roi, mid_x + one_sixth_x, two_thirds_y, roi.rows);
 
     //for (int i=0; i<7; ++i) {
     //cout << "segment " << i << " hit: " <<supporta[i]<<" "<< segment_hit[i] << " "<<supportb[i] << endl;
@@ -235,34 +229,45 @@ int LedSolver::predictCross(Mat& roi)
     //cout << "Segment: " << segment << endl;
 
     switch (segment) {
-    case 0x3f: return 0;
-    case 0x06: return 1;
-    case 0x5b: return 2;
-    case 0x4f: return 3;
-    case 0x66: return 4;
-    case 0x6d: return 5;
-    case 0x7d: return 6;
-    case 0x07: return 7;
-    case 0x7f: return 8;
-    case 0x6f: return 9;
-    default: return -1;
+    case 0x3f:
+        return 0;
+    case 0x06:
+        return 1;
+    case 0x5b:
+        return 2;
+    case 0x4f:
+        return 3;
+    case 0x66:
+        return 4;
+    case 0x6d:
+        return 5;
+    case 0x7d:
+        return 6;
+    case 0x07:
+        return 7;
+    case 0x7f:
+        return 8;
+    case 0x6f:
+        return 9;
+    default:
+        return -1;
     }
 }
 
 //int LedSolver::predictSVM(Mat& roi)
 //{
-    //vector<float> descriptors;
-    ////dilate(roi, roi, kernel);
-    ////erode(roi, roi, kernel);
-    //resize(roi, roi, Size(20, 20));
-    //Mat inner = Mat::ones(28, 28, CV_8UC1) + 254;
-    //roi.copyTo(inner(Rect(4, 4, 20, 20)));
-    ////imshow("inner", inner);
-    //hog->compute(inner, descriptors, Size(1, 1), Size(0, 0));
+//vector<float> descriptors;
+////dilate(roi, roi, kernel);
+////erode(roi, roi, kernel);
+//resize(roi, roi, Size(20, 20));
+//Mat inner = Mat::ones(28, 28, CV_8UC1) + 254;
+//roi.copyTo(inner(Rect(4, 4, 20, 20)));
+////imshow("inner", inner);
+//hog->compute(inner, descriptors, Size(1, 1), Size(0, 0));
 
-    //Mat SVMPredictMat = Mat(1, (int)descriptors.size(), CV_32FC1);
-    //memcpy(SVMPredictMat.data, descriptors.data(), descriptors.size() * sizeof(float));
-    //return (svm->predict(SVMPredictMat));
+//Mat SVMPredictMat = Mat(1, (int)descriptors.size(), CV_32FC1);
+//memcpy(SVMPredictMat.data, descriptors.data(), descriptors.size() * sizeof(float));
+//return (svm->predict(SVMPredictMat));
 //}
 
 int LedSolver::getResult(int index)
@@ -274,7 +279,7 @@ int LedSolver::getResult(int index)
 
 bool LedSolver::confirmLed()
 {
-    for (int i=0; i<5; ++i) {
+    for (int i = 0; i < 5; ++i) {
         if (results[i] == -1) {
             return false;
         }

@@ -26,28 +26,6 @@ void BlockSplit::setParam(int index, int data)
     } else {
         cout << "Set Param Error!" << endl;
     }
-    //switch (index) {
-    //case 1:
-        //param[GRAY_THRES]   = data;
-        //break;
-    //case 2:
-        //param[AREA_MIN]     = data;
-        //break;
-    //case 3:
-        //param[AREA_MAX]     = data;
-        //break;
-    //case 4:
-        //param[HW_RATIO_MIN] = data;
-        //break;
-    //case 5:
-        //param[HW_RATIO_MAX] = data;
-        //break;
-    //case 6:
-        //param[AREA_RATIO]   = data;
-        //break;
-    //default:
-        //break;
-    //}
 }
 
 bool BlockSplit::processMnist(Mat& input, Rect& led_rect,
@@ -133,6 +111,8 @@ bool BlockSplit::processMnist(Mat& input, Rect& led_rect,
 bool BlockSplit::process(Mat& input, Rect& led_rect,
     Rect& sudoku_rect)
 {
+    //TODO: The sudoku Rect and led Rect should not move frequently.
+    //We can only search the space near last result.
     static Mat gray, binary;
     static Mat draw;
     vector<vector<Point> > contours;
@@ -209,52 +189,8 @@ bool BlockSplit::process(Mat& input, Rect& led_rect,
 
     //cout << "Sudoku Rect: " << sudoku_rect << endl;
 
-    //Mat block_roi = binary(whole_block);
-    //imshow("block roi", block_roi);
-
-    //contours.clear();
-    //findContours(block_roi.clone(), contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
-
-    //for (uint i = 0; i < contours.size(); ++i) {
-        //Rect bound = boundingRect(contours[i]);
-        //if (bound.area() < 500)
-            //continue;
-
-        //blocks.push_back(Rect(whole_block.tl()+bound.tl(), bound.size()));
-    //}
-
-    //for (uint i = 0; i < blocks.size(); ++i) {
-        //rectangle(draw, blocks[i], Scalar(0, 0, 255), 2);
-    //}
-
-    //imshow("sudoku draw", draw);
-    //imshow("sudoku binary", binary);
-
-    ////int block_height = whole_block_height / 3;
-    ////int block_width = block_height;
-    ////int block_gap_width = (whole_block_width - 3 * block_width) / 4;
-
-    ////for (int i=0; i<3; ++i) {
-        ////for (int j=0; j<3; ++j) {
-            ////blocks.push_back(Rect(whole_block_x +
-                        ////(j+1) * block_gap_width +
-                        ////j * block_width,
-                        ////whole_block_y +
-                        ////i * block_height,
-                        ////block_width, block_height));
-        ////}
-    ////}
-
-    //sort(blocks.begin(), blocks.end(), compareRect);
-
-    ////int top_x = blocks[0].x + blocks[0].width;
-    ////int top_y = blocks[0].y;
-    ////int top_width = blocks[blocks.size()-1].x - top_x;
-
     led_rect = Rect(whole_block_x, 0, 
             whole_block_width, whole_block_y);
-
-    //copy(blocks.begin(), blocks.end(), back_inserter(handwrite_rects));
 
     return true;
 }
