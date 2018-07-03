@@ -9,7 +9,8 @@
 #include <sys/ioctl.h>
 
 //int fd=open("/dev/ttyTHS2", O_RDWR | O_NOCTTY | O_NDELAY);
-int fd=12345;
+int fd=open("/dev/ttyUSB0", O_RDWR | O_NOCTTY | O_NDELAY);
+//int fd=12345;
 
 int set_opt(int fd,int nSpeed, int nBits, char nEvent, int nStop)
 {

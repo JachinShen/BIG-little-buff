@@ -116,7 +116,7 @@ bool BlockSplit::processMnist(Mat& input, Rect& led_rect,
             buttom_right_y = blocks[i].y;
     }
 
-    int whole_block_x = top_left_x;
+    int whole_block_x = top_left_x - 10;
     int whole_block_y = top_left_y;
     int whole_block_width = buttom_right_x - whole_block_x + blocks[0].width;
     int whole_block_height = buttom_right_y - top_left_y + blocks[0].height;

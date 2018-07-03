@@ -13,6 +13,7 @@ public:
     void process(vector<Mat>& block_roi);
     int getNumberBlockID(int number);
     int confirmNumber(int number);
+    bool confirm();
 
 private:
     Classifier classifier;

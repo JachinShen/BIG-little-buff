@@ -29,7 +29,7 @@ void process() {
     //ROS_INFO_STREAM("Sudoku Rect: " << sudoku_rect);
     img_roi = img(sudoku_rect);
     cvtColor(img_roi, gray, CV_BGR2GRAY);
-    threshold(gray, binary, 128, 255, CV_THRESH_BINARY);
+    threshold(gray, binary, 90, 255, CV_THRESH_BINARY);
 
     findContours(binary.clone(), contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
     mnist_rect.clear();
@@ -67,6 +67,10 @@ void process() {
     }
     imshow("Mnist", img_roi);
 #endif
+
+    if (mnist_classifier.confirm()) {
+        mnist_run = false;
+    }
 
 }
 
