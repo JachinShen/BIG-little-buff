@@ -5,7 +5,7 @@ static ros::Publisher aim_num_pub;
 static ros::Publisher sudoku_ctr_pub;
 static ros::Publisher led_ctr_pub;
 static ros::Publisher mnist_ctr_pub;
-//static ros::Publisher mnist_id_pub;
+static ros::Publisher aim_ready_pub;
 static ros::Publisher fire_ctr_pub;
 static ControlSM csm;
 static Serial serial;
@@ -78,7 +78,12 @@ void csmTimerCallback(const ros::TimerEvent&)
     if (block_id > 0) {
         ROS_INFO_STREAM("Send Block Id: " << (int)block_id);
         serial.sendString(&block_id, 1);
-    } 
+    } else if (block_id == 0) {
+        ROS_INFO("Demarcate");
+        static std_msgs::Bool aim_ready_msg;
+        aim_ready_msg.data = true;
+        aim_ready_pub.publish(aim_ready_msg);
+    }
     //csm.publishMnist(mnist_id_pub);
 }
 
@@ -109,8 +114,8 @@ int main(int argc, char* argv[])
         = nh.advertise<std_msgs::Bool>("buff/led_ctr", 1);
     mnist_ctr_pub
         = nh.advertise<std_msgs::Bool>("buff/mnist_ctr", 1);
-    //mnist_id_pub
-        //= nh.advertise<std_msgs::Int16MultiArray>("buff/mnist_id", 1);
+    aim_ready_pub
+        = nh.advertise<std_msgs::Bool>("buff/aim_ready", 1);
     fire_ctr_pub
         = nh.advertise<std_msgs::Bool>("buff/fire_ctr", 1);
 

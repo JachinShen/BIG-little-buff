@@ -4,8 +4,10 @@
 
 static ros::Publisher            led_param_pub;
 static ros::Publisher            sudoku_param_pub;
+static ros::Publisher            aim_param_pub;
 static std_msgs::Int16MultiArray led_param_msg;
 static std_msgs::Int16MultiArray sudoku_param_msg;
+static std_msgs::Int16MultiArray aim_param_msg;
 
 static int SUDOKU_PARAM[BlockSplit::PARAM_SIZE] = {
     120,
@@ -83,6 +85,41 @@ int ledParamMax(int index)
     return led_param_max[index];
 }
 
+static int AIM_PARAM[BlockSplit::PARAM_SIZE] = {
+    120,
+    1000,
+    3000,
+    30,
+    100,
+    70
+};
+
+string aimParamEnumToStr(int index)
+{
+    static string aim_param_enum_to_str[BlockSplit::PARAM_SIZE] = {
+        "Aim Gray Threshold",
+        "Aim Area Min",
+        "Aim Area Max",
+        "Aim HW Ratio Min",
+        "Aim HW Ratio Max",
+        "Aim Area Ratio"
+    };
+    return aim_param_enum_to_str[index];
+}
+
+int aimParamMax(int index)
+{
+    static int aim_param_max[BlockSplit::PARAM_SIZE] = {
+        255,
+        5000,
+        10000,
+        100,
+        100,
+        100
+    };
+    return aim_param_max[index];
+}
+
 void advertiseParam(int index, int value, ros::Publisher& pub, std_msgs::Int16MultiArray& msg)
 {
     msg.data.clear();
@@ -105,16 +142,26 @@ void ledOnChange(int pos, void* id)
     advertiseParam(value - LED_PARAM, pos, led_param_pub, led_param_msg);
 }
 
+void aimOnChange(int pos, void* id)
+{
+    int* value = (int*)id;
+    *value = pos;
+    advertiseParam(value - AIM_PARAM, pos, aim_param_pub, aim_param_msg);
+}
+
 void updateAllParam()
 {
     static int sudoku_publish_id = 0;
     static int led_publish_id    = 0;
+    static int aim_publish_id    = 0;
 
     advertiseParam(sudoku_publish_id, SUDOKU_PARAM[sudoku_publish_id], sudoku_param_pub, sudoku_param_msg);
     advertiseParam(led_publish_id, LED_PARAM[led_publish_id], led_param_pub, led_param_msg);
+    advertiseParam(aim_publish_id, AIM_PARAM[aim_publish_id], aim_param_pub, aim_param_msg);
 
     sudoku_publish_id = (++sudoku_publish_id) % BlockSplit::PARAM_SIZE;
     led_publish_id    = (++led_publish_id)    % LedSolver::PARAM_SIZE;
+    aim_publish_id    = (++aim_publish_id)    % BlockSplit::PARAM_SIZE;
 }
 
 void waitkeyTimerCallback(const ros::TimerEvent&)
@@ -138,6 +185,7 @@ int main(int argc, char* argv[])
     ROS_INFO("Start!");
     led_param_pub    = nh.advertise<std_msgs::Int16MultiArray>("buff/led_param",    1);
     sudoku_param_pub = nh.advertise<std_msgs::Int16MultiArray>("buff/sudoku_param", 1);
+    aim_param_pub    = nh.advertise<std_msgs::Int16MultiArray>("buff/aim_param",    1);
 
     namedWindow("params");
 
@@ -155,6 +203,12 @@ int main(int argc, char* argv[])
             LED_PARAM + i);
     }
 
+    for (int i = 0; i < BlockSplit::PARAM_SIZE; ++i) {
+        createTrackbar(aimParamEnumToStr(i), "params",
+            AIM_PARAM + i, aimParamMax(i),
+            (cv::TrackbarCallback)aimOnChange,
+            AIM_PARAM + i);
+    }
     for (int i=0; i < BlockSplit::PARAM_SIZE || i < LedSolver::PARAM_SIZE; ++i) {
         updateAllParam();
     }

@@ -28,6 +28,7 @@ void ControlSM::init()
     sudoku_fresh = false;
     led_fresh = false;
     serial_send = false;
+    wait_for_demarcate = false;
     freshCtr();
 
     for (int i = 0; i < 5; ++i)
@@ -57,6 +58,9 @@ void ControlSM::run()
             transferState(READY);
         }
     } else if (state == READY) {
+        if (wait_for_demarcate) {
+            return;
+        }
         ++ready_state_ctr;
         if (led[0] != -1) {
             //ROS_INFO_STREAM("Ready Sudoku Confirm: " << sudoku_confirm[led[0]]);
@@ -182,6 +186,10 @@ int ControlSM::sendBlockID()
 {
     if (!serial_send)
         return -1;
+    if (state == READY) {
+        serial_send = false;
+        return 0;
+    }
     if (sudoku_fresh && led_fresh
         && (state == LED_ONE || state == LED_TWO || state == LED_THREE
                || state == LED_FOUR || state == LED_FIVE)) {
@@ -214,6 +222,8 @@ void ControlSM::freshCtr()
         sudoku_found = led_run = mnist_run = tick_run = false;
         break;
     case READY:
+        wait_for_demarcate = true;
+        serial_send = true;
         sudoku_fresh = false;
         led_fresh = false;
         led_run = mnist_run = tick_run = true;

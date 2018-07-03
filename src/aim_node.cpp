@@ -6,6 +6,30 @@ static Mat                        frame;
 static Rect                       aim_rect;
 static KCFTracker                 tracker(false, true, false, false);
 static cv_bridge::CvImageConstPtr cv_ptr;
+static bool aim_ready_run;
+static BlockSplit block_split;
+
+void process()
+{
+    if (!aim_ready_run)
+        return;
+    static Mat gray, binary;
+    Rect led_rect, sudoku_rect;
+    if (frame.channels() != 1)
+        cvtColor(frame, gray, CV_BGR2GRAY);
+    else
+        gray = frame;
+    if (block_split.process(gray, led_rect, sudoku_rect)) {
+        aim_rect = Rect(sudoku_rect.x, sudoku_rect.y, sudoku_rect.width / 3, sudoku_rect.height / 3);
+        ROS_INFO_STREAM("target : " << aim_rect);
+        tracker.init(aim_rect, gray);
+    }
+}
+
+void aimParamCallback(const std_msgs::Int16MultiArray& msg)
+{
+    block_split.setParam(msg.data[0], msg.data[1]);
+}
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
@@ -17,17 +41,19 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
     }
 }
 
-void aimRectCallback(const std_msgs::Int16MultiArray& msg)
+void aimReadyCallback(const std_msgs::Bool& msg)
 {
-    aim_rect = Rect(msg.data[0], msg.data[1], msg.data[2], msg.data[3]);
-    ROS_INFO_STREAM("Aim Rect: " << aim_rect);
+    aim_ready_run = msg.data;
+    process();
+    //aim_rect = Rect(msg.data[0], msg.data[1], msg.data[2], msg.data[3]);
+    //ROS_INFO_STREAM("Aim Rect: " << aim_rect);
 
-    if (aim_rect.area() == 0)
-        return;
+    //if (aim_rect.area() == 0)
+        //return;
     
-    static Mat car_image;
-    cvtColor(cv_ptr->image.clone(), car_image, CV_BGR2GRAY);
-    tracker.init(aim_rect, car_image);
+    //static Mat car_image;
+    //cvtColor(cv_ptr->image.clone(), car_image, CV_BGR2GRAY);
+    //tracker.init(aim_rect, car_image);
 }
 
 int main(int argc, char* argv[])
@@ -42,7 +68,8 @@ int main(int argc, char* argv[])
     ros::NodeHandle nh;
     ros::Rate loop_rate(10);
 
-    ros::Subscriber aim_sub = nh.subscribe("buff/aim_rect", 1, aimRectCallback);
+    ros::Subscriber aim_sub = nh.subscribe("buff/aim_ready", 1, aimReadyCallback);
+    ros::Subscriber aim_param_sub = nh.subscribe("buff/aim_param", 1, aimParamCallback);
     image_transport::ImageTransport it(nh);
     image_transport::Subscriber sub
         = it.subscribe("camera/image", 1, imageCallback);
@@ -76,6 +103,8 @@ int main(int argc, char* argv[])
             if (aim_rect.area() != 0) {
                 aim_rect = tracker.update(frame);
                 rectangle(frame, aim_rect, 255, 4);
+            } else {
+                process();
             }
             imshow("aim src", frame);
             waitKey(1);

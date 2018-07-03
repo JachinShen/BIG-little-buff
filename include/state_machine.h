@@ -60,6 +60,7 @@ private:
     bool sudoku_fresh;
     bool led_fresh;
     bool serial_send;
+    bool wait_for_demarcate;
 
     void transferState(State s);
     void transferNext();
