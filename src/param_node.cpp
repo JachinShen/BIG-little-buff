@@ -8,7 +8,7 @@ static std_msgs::Int16MultiArray led_param_msg;
 static std_msgs::Int16MultiArray sudoku_param_msg;
 
 static int SUDOKU_PARAM[BlockSplit::PARAM_SIZE] = {
-    90,
+    120,
     1000,
     3000,
     30,
@@ -45,8 +45,8 @@ int sudokuParamMax(int index)
 static int LED_PARAM[LedSolver::PARAM_SIZE] = {
     50,
     80,
-    20,
-    1000,
+    400,
+    2500,
     130,
     1000,
     250,

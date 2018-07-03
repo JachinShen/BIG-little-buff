@@ -69,7 +69,7 @@ void ControlSM::run()
             transferState(WAIT);
         }
     } else if (state == LED_ONE || state == LED_TWO
-        || LED_THREE || LED_FOUR) {
+        || state == LED_THREE || state == LED_FOUR) {
         if (falling_edge) {
             falling_edge = false;
             memcpy(led_last, led, sizeof(led));
@@ -79,13 +79,12 @@ void ControlSM::run()
     } else if (state == ONE_TWO || state == TWO_THREE
         || state == THREE_FOUR || state == FOUR_FIVE) {
         if (led_fresh && sudoku_fresh) {
+            ROS_INFO("Check Led!");
             checkLed();
             if (led_remain && sudoku_confirm[led[1]] > 50) {
                 //transferState(LED_TWO);
                 transferNext();
             } else if (led[0] != -1 && sudoku_confirm[led[0]] > 50) {
-                sudoku_fresh = false;
-                led_fresh = false;
                 transferState(LED_ONE);
             } else {
                 transferState(WAIT);
