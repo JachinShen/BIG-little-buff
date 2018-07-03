@@ -174,34 +174,62 @@ int LedSolver::predictCross(Mat& roi)
 #define SEGMENT_G 0x40;
 
     int mid_x = roi.cols / 2;
+    int one_sixth_x = roi.cols / 6;
     int one_third_y = roi.rows / 3;
     int two_thirds_y = roi.rows * 2 / 3;
+    int one_twelvth_y = roi.rows / 12;
     int segment = 0x00;
     int segment_hit[7] = { 0 };
+    int supporta[7] = {0}, supportb[7] = {0};
 
-    segment_hit[0] = (scanSegmentY(roi, one_third_y, 0, mid_x));
-    segment_hit[1] = (scanSegmentY(roi, one_third_y, mid_x, roi.cols));
-    segment_hit[2] = (scanSegmentY(roi, two_thirds_y, 0, mid_x));
-    segment_hit[3] = (scanSegmentY(roi, two_thirds_y, mid_x, roi.cols));
-    segment_hit[4] = (scanSegmentX(roi, mid_x, 0, one_third_y));
-    segment_hit[5] = (scanSegmentX(roi, mid_x, one_third_y, two_thirds_y));
-    segment_hit[6] = (scanSegmentX(roi, mid_x, two_thirds_y, roi.rows));
+    segment_hit[0] = (	scanSegmentY(roi, one_third_y, 					0, mid_x));
+    supporta[0] = 			scanSegmentY(roi, one_third_y-one_twelvth_y, 	0, mid_x);
+    supportb[0] = 			scanSegmentY(roi, one_third_y+one_twelvth_y, 	0, mid_x);
+    
+    segment_hit[1] = (	scanSegmentY(roi, one_third_y, 					mid_x, roi.cols));
+    supporta[1] = 			scanSegmentY(roi, one_third_y-one_twelvth_y, 	mid_x, roi.cols);
+    supportb[1] = 			scanSegmentY(roi, one_third_y+one_twelvth_y, 	mid_x, roi.cols);
+    
+    segment_hit[2] = (	scanSegmentY(roi, two_thirds_y, 				0, mid_x));
+    supporta[2] = 			scanSegmentY(roi, two_thirds_y-one_twelvth_y, 	0, mid_x);
+    supportb[2] = 			scanSegmentY(roi, two_thirds_y+one_twelvth_y, 	0, mid_x);
+    
+    segment_hit[3] = (	scanSegmentY(roi, two_thirds_y, 				mid_x, roi.cols));
+    supporta[3] = 			scanSegmentY(roi, two_thirds_y-one_twelvth_y, 	mid_x, roi.cols);
+    supportb[3] = 			scanSegmentY(roi, two_thirds_y+one_twelvth_y, 	mid_x, roi.cols);
+    
+    segment_hit[4] = (	scanSegmentX(roi, mid_x, 				0, one_third_y));
+    supporta[4] = 			scanSegmentX(roi, mid_x-one_sixth_x, 	0, one_third_y);
+    supportb[4] = 			scanSegmentX(roi, mid_x+one_sixth_x, 	0, one_third_y);
+    
+    segment_hit[5] = (scanSegmentX(roi, mid_x, 					one_third_y, two_thirds_y));
+    supporta[5] = 			scanSegmentX(roi, mid_x-one_sixth_x, 	one_third_y, two_thirds_y);
+    supportb[5] = 			scanSegmentX(roi, mid_x+one_sixth_x, 	one_third_y, two_thirds_y);
+    
+    segment_hit[6] = (	scanSegmentX(roi, mid_x, 				two_thirds_y, roi.rows));
+    supporta[6] = 			scanSegmentX(roi, mid_x-one_sixth_x, 	two_thirds_y, roi.rows);
+    supportb[6] = 			scanSegmentX(roi, mid_x+one_sixth_x, 	two_thirds_y, roi.rows);
+    
+    
+
+	
+
     //for (int i=0; i<7; ++i) {
-    //cout << "segment " << i << " hit: " << segment_hit[i] << endl;
+    //cout << "segment " << i << " hit: " <<supporta[i]<<" "<< segment_hit[i] << " "<<supportb[i] << endl;
     //}
-    if (segment_hit[0] > 2)
+    if (segment_hit[0] > 2 && supporta[0] > 2 && supportb[0] > 2)
         segment |= SEGMENT_F;
-    if (segment_hit[1] > 2)
+    if (segment_hit[1] > 2 && supporta[1] > 2 && supportb[1] > 2)
         segment |= SEGMENT_B;
-    if (segment_hit[2] > 2)
+    if (segment_hit[2] > 2 && supporta[2] > 2 && supportb[2] > 2)
         segment |= SEGMENT_E;
-    if (segment_hit[3] > 2)
+    if (segment_hit[3] > 2 && supporta[3] > 2 && supportb[3] > 2)
         segment |= SEGMENT_C;
-    if (segment_hit[4] > 2)
+    if (segment_hit[4] > 2 && supporta[4] > 2 && supportb[4] > 2)
         segment |= SEGMENT_A;
-    if (segment_hit[5] > 2)
+    if (segment_hit[5] > 2 && supporta[5] > 2 && supportb[5] > 2)
         segment |= SEGMENT_G;
-    if (segment_hit[6] > 2)
+    if (segment_hit[6] > 2 && supporta[6] > 2 && supportb[6] > 2)
         segment |= SEGMENT_D;
 
     //cout << "Segment: " << segment << endl;
