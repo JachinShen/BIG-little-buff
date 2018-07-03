@@ -56,7 +56,7 @@ int main(int argc, char** argv)
                 gray_pub.publish(gray_msg);
 
                 imshow("src", frame);
-                waitKey(1);
+                waitKey(0);
             }
         }
     }

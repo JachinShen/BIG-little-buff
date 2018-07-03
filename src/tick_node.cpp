@@ -36,7 +36,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
         float difference = (float) countNonZero(roi_diff) / (roi_diff.cols * roi_diff.rows);
         //ROS_INFO_STREAM("Difference: " << difference);
 
-        tick_msg.data = difference > 0.06;
+        tick_msg.data = difference > 0.1;
         tick_pub.publish(tick_msg);
     }
 

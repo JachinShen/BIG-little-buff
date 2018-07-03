@@ -32,7 +32,7 @@ void ControlSM::init()
     for (int i = 0; i < 5; ++i)
         led[i] = -1;
 
-    for (int i = 0; i < 5; ++i)
+    for (int i = 0; i < 10; ++i)
         sudoku[i] = -1;
 
     state_to_str[WAIT] = "WAIT";
@@ -73,22 +73,32 @@ void ControlSM::run()
         if (falling_edge) {
             falling_edge = false;
             memcpy(led_last, led, sizeof(led));
+            memcpy(sudoku_last, sudoku, sizeof(sudoku));
             transferNext();
-            //transferState(ONE_TWO);
         }
     } else if (state == ONE_TWO || state == TWO_THREE
         || state == THREE_FOUR || state == FOUR_FIVE) {
         if (led_fresh && sudoku_fresh) {
-            ROS_INFO("Check Led!");
             checkLed();
             if (led_remain && sudoku_confirm[led[1]] > 50) {
-                //transferState(LED_TWO);
                 transferNext();
             } else if (led[0] != -1 && sudoku_confirm[led[0]] > 50) {
                 transferState(LED_ONE);
             } else {
                 transferState(WAIT);
             }
+        }
+    } else if (state == LED_FIVE)
+    {
+        if (falling_edge) {
+            falling_edge = false;
+
+            for (int i = 0; i < 5; ++i)
+                led[i] = -1;
+            for (int i = 0; i < 10; ++i)
+                sudoku[i] = -1;
+
+            transferState(WAIT);
         }
     } else {
         transferState(WAIT);
@@ -273,5 +283,5 @@ bool ControlSM::sudokuChange()
         }
     }
     ROS_INFO_STREAM("Sudoku Change: " << change_cnt);
-    return change_cnt > 3;
+    return change_cnt >= 2;
 }
