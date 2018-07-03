@@ -14,14 +14,15 @@
 using namespace std;
 class Serial {
 private:
-#if PLATFORM == MANIFOLD
+//#if PLATFORM == MANIFOLD
     int fd;
-#endif
+//#endif
 
 private:
     int set_opt(int, int, int, char, int);
 
 public:
-    void init();
+    void init(char* port);
+    void sendString(char* data, int length);
     void sendTarget(int, int, int);
 };

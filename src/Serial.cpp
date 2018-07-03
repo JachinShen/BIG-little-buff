@@ -73,17 +73,10 @@ int Serial::set_opt(int fd, int nSpeed, int nBits, char nEvent, int nStop)
     return 0;
 }
 
-void Serial::init()
+void Serial::init(char* port)
 {
-#if PLATFORM == MANIFOLD
-    fd = open("/dev/ttyTHS2", O_RDWR | O_NOCTTY | O_NDELAY); //妙算串口设备描述符看说明书，这个应该就是
-#endif
-}
-
-void Serial::sendTarget(int target_x, int target_y, int is_found)
-{
-
-#if PLATFORM == MANIFOLD
+//#if PLATFORM == MANIFOLD
+    fd = open(port, O_RDWR | O_NOCTTY | O_NDELAY); //妙算串口设备描述符看说明书，这个应该就是
     if (fd < 0) {
         perror("open_port error");
         return;
@@ -94,9 +87,27 @@ void Serial::sendTarget(int target_x, int target_y, int is_found)
         perror("set_opt error");
         return;
     }
-#endif
-    //int converted_x = int(target_x * (18000.0 / 640));
-    //int converted_y = int((480 - target_y) * (10000.0 / 480));
+//#endif
+}
+
+void Serial::sendString(char* data, int length)
+{
+    int n = write(fd, data, length);
+    if (n<0) {
+        cout << "Write Error! Sign: " << n << endl;
+    }
+    //char receive[30] = { 0 };
+    //n = read(fd, receive, 50);
+    //if (n<0) {
+        //cout << "Read Error!" << endl;
+    //} else {
+        //cout << "Receive:" << receive << endl;
+    //}
+}
+
+void Serial::sendTarget(int target_x, int target_y, int is_found)
+{
+
     if (target_x < 0 || target_x > 640 || target_y < 0 || target_y > 480) {
         is_found = 0;
         target_x = 320;
@@ -128,14 +139,5 @@ void Serial::sendTarget(int target_x, int target_y, int is_found)
     }
     cout << endl;
 
-#if PLATFORM == MANIFOLD
-    //串口发送buf的前40字节
-    //n = write(fd, buf, 7);
-    write(fd, buf, 7);
-    //读串口30字节到buf
-    char receive[30] = { 0 };
-    //int n = read(fd, receive, 50);
-    read(fd, receive, 50);
-    //cout << "Receive:" << receive << endl;
-#endif
+    sendString(buf, 7);
 };
