@@ -1,5 +1,6 @@
 #include "sudoku/BlockSplit.h"
 
+static     cv_bridge::CvImageConstPtr cv_ptr;
 static ros::Publisher led_rect_pub;
 static ros::Publisher sudoku_rect_pub;
 static BlockSplit     block_split;
@@ -17,14 +18,21 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
         return;
     }
 
-    static Mat img, gray, binary;
+    try {
+        cv_ptr = cv_bridge::toCvShare(msg, sensor_msgs::image_encodings::MONO8);
+    } catch (cv_bridge::Exception& e) {
+        ROS_ERROR("cv_bridge exception: %s", e.what());
+        return;
+    }
+
+    static Mat gray, binary;
     Rect led_rect, sudoku_rect;
 
-    img = cv_bridge::toCvShare(msg, "bgr8")->image.clone();
-    if (img.empty())
+    gray = cv_ptr->image.clone();
+    if (gray.empty())
         return;
 
-    if (block_split.process(img, led_rect, sudoku_rect)) {
+    if (block_split.process(gray, led_rect, sudoku_rect)) {
         ROS_INFO_STREAM("Led Rect: " << led_rect);
         std_msgs::Int16MultiArray led_rect_msg;
         led_rect_msg.data.push_back(led_rect.x);
@@ -69,7 +77,7 @@ int main(int argc, char* argv[])
     sudoku_rect_pub = nh.advertise<std_msgs::Int16MultiArray>("buff/sudoku_rect", 1, true);
 
     image_transport::ImageTransport it(nh);
-    image_transport::Subscriber sub = it.subscribe("camera/image", 1, imageCallback);
+    image_transport::Subscriber sub = it.subscribe("camera/gray", 1, imageCallback);
     ros::Subscriber sudoku_param_sub = nh.subscribe("buff/sudoku_param", 1, sudokuParamCallback);
     ros::Subscriber sudoku_ctr_sub = nh.subscribe("buff/sudoku_ctr", 1, sudokuCtrCallback);
 

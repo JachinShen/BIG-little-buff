@@ -28,7 +28,8 @@ void process() {
     }
     //ROS_INFO_STREAM("Sudoku Rect: " << sudoku_rect);
     img_roi = img(sudoku_rect);
-    cvtColor(img_roi, gray, CV_BGR2GRAY);
+    //cvtColor(img_roi, gray, CV_BGR2GRAY);
+    gray = img_roi;
     threshold(gray, binary, 128, 255, CV_THRESH_BINARY);
 
     findContours(binary.clone(), contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
@@ -42,8 +43,9 @@ void process() {
 
     sort(mnist_rect.begin(), mnist_rect.end(), compareRect);
     mnist_roi.clear();
+    binary = ~binary;
     for (uint i = 0; i < mnist_rect.size(); ++i) {
-        Mat roi = (~binary)(mnist_rect[i]);
+        Mat roi = (binary)(mnist_rect[i]);
         //copyMakeBorder(roi, roi, 15, 15, 15, 15, BORDER_CONSTANT);
         resize(roi, roi, Size(28, 28));
         mnist_roi.push_back(roi);
@@ -73,7 +75,7 @@ void process() {
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
     try {
-        cv_ptr = cv_bridge::toCvShare(msg, sensor_msgs::image_encodings::BGR8);
+        cv_ptr = cv_bridge::toCvShare(msg, sensor_msgs::image_encodings::MONO8);
     } catch (cv_bridge::Exception& e) {
         ROS_ERROR("cv_bridge exception: %s", e.what());
         return;
@@ -141,7 +143,7 @@ int main(int argc, char* argv[])
 
     image_transport::ImageTransport it(nh);
     image_transport::Subscriber sub
-        = it.subscribe("camera/image", 1, imageCallback);
+        = it.subscribe("camera/gray", 1, imageCallback);
     ros::Subscriber sudoku_rect_sub
         = nh.subscribe("buff/sudoku_rect", 1, handwriteRectsCallback);
     ros::Subscriber mnist_param_sub

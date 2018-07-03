@@ -107,14 +107,16 @@ void BlockSplit::setParam(int index, int data)
 bool BlockSplit::process(Mat& input, Rect& led_rect,
     Rect& sudoku_rect)
 {
-    static Mat gray, yellow, binary;
+    static Mat gray, binary;
     static Mat draw;
     vector<vector<Point> > contours;
     vector<Rect> side_blocks;
     vector<Rect> blocks;
 
     draw = input.clone();
-    if (input.channels() != 1) {
+    if (input.channels() == 1) {
+        gray = input;
+    } else {
         cvtColor(input, gray, CV_BGR2GRAY);
     }
     threshold(gray, binary, param[GRAY_THRES], 255, THRESH_BINARY);
@@ -141,7 +143,7 @@ bool BlockSplit::process(Mat& input, Rect& led_rect,
     }
 
     for (uint i = 0; i < side_blocks.size(); ++i) {
-        rectangle(draw, side_blocks[i], Scalar(255, 0, 255), 2);
+        rectangle(draw, side_blocks[i], 255, 2);
     }
     imshow("sudoku draw", draw);
     imshow("sudoku binary", binary);

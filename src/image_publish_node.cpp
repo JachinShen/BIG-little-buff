@@ -22,10 +22,11 @@ int main(int argc, char** argv)
     ros::NodeHandle nh;
     image_transport::ImageTransport it(nh);
     image_transport::Publisher pub = it.advertise("camera/image", 1, true);
+    image_transport::Publisher gray_pub = it.advertise("camera/gray", 1, true);
 
-    cv::Mat frame;
-    sensor_msgs::ImagePtr msg;
-    ros::Rate loop_rate(10);
+    cv::Mat frame, gray;
+    sensor_msgs::ImagePtr msg, gray_msg;
+    ros::Rate loop_rate(30);
     enum {VIDEO_FILE, VIDEO_CAMERA} video_type;
     while (nh.ok()) {
         cv::VideoCapture cap;
@@ -45,23 +46,18 @@ int main(int argc, char** argv)
 
 
         while (cap.read(frame) && ros::ok()) {
-
-            resize(frame, frame, Size(640, 480));
-            imshow("src", frame);
-
             // Check if grabbed frame is actually full with some content
             if (!frame.empty()) {
+                cv::resize(frame, frame, Size(640, 480));
+                cv::cvtColor(frame, gray, CV_BGR2GRAY);
                 msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", frame).toImageMsg();
+                gray_msg = cv_bridge::CvImage(std_msgs::Header(), "mono8", gray).toImageMsg();
                 pub.publish(msg);
+                gray_pub.publish(gray_msg);
+
+                imshow("src", frame);
+                waitKey(1);
             }
-
-            if (video_type == VIDEO_FILE)
-                waitKey(1);
-            else if (video_type == VIDEO_CAMERA)
-                waitKey(1);
-
-            ros::spinOnce();
-            loop_rate.sleep();
         }
     }
 }
