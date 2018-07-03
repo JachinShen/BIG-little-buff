@@ -22,7 +22,7 @@ private:
     int set_opt(int, int, int, char, int);
 
 public:
-    void init(char* port);
+    void init(string port);
     void sendString(char* data, int length);
     void sendTarget(int, int, int);
 };

@@ -5,7 +5,7 @@
     <!--<node pkg="buff" name="aim_node" type="aim_node" args="/home/jachinshen/Videos/Robo/warmingup/test.mp4" output="screen"/>-->
     <node pkg="buff" name="sudoku_node" type="sudoku_node" />
     <node pkg="buff" name="led_solver_node" type="led_solver_node" />
-    <node pkg="buff" name="control_node" type="control_node" output="screen"/>
+    <node pkg="buff" name="control_node" type="control_node" args="/dev/ttyUSB0" output="screen"/>
     <node pkg="buff" name="param_node" type="param_node"/>
     <!--<node pkg="buff" name="fire_node" type="fire_node"/>-->
     <node pkg="buff" name="mnist_node" type="mnist_node" output="screen"/>

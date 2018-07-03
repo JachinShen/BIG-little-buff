@@ -13,8 +13,9 @@ public:
     void setSudoku(vector<int16_t> data);
     void setSudokuFound();
     void checkLed();
-    int  getLedNow();
-    int  getBlockIdNow();
+    int getLedNow();
+    int getBlockIdNow();
+    int sendBlockID();
     //bool serial_send;
 
 private:
@@ -58,6 +59,7 @@ private:
     bool mnist_id_publish;
     bool sudoku_fresh;
     bool led_fresh;
+    bool serial_send;
 
     void transferState(State s);
     void transferNext();

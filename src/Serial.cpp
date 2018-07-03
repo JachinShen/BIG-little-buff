@@ -73,10 +73,10 @@ int Serial::set_opt(int fd, int nSpeed, int nBits, char nEvent, int nStop)
     return 0;
 }
 
-void Serial::init(char* port)
+void Serial::init(string port)
 {
 //#if PLATFORM == MANIFOLD
-    fd = open(port, O_RDWR | O_NOCTTY | O_NDELAY); //妙算串口设备描述符看说明书，这个应该就是
+    fd = open(port.c_str(), O_RDWR | O_NOCTTY | O_NDELAY); //妙算串口设备描述符看说明书，这个应该就是
     if (fd < 0) {
         perror("open_port error");
         return;

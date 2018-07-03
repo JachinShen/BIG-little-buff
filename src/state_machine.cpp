@@ -27,6 +27,7 @@ void ControlSM::init()
     mnist_id_publish = false;
     sudoku_fresh = false;
     led_fresh = false;
+    serial_send = false;
     freshCtr();
 
     for (int i = 0; i < 5; ++i)
@@ -88,8 +89,7 @@ void ControlSM::run()
                 transferState(WAIT);
             }
         }
-    } else if (state == LED_FIVE)
-    {
+    } else if (state == LED_FIVE) {
         if (falling_edge) {
             falling_edge = false;
 
@@ -178,6 +178,20 @@ void ControlSM::publishMnist(ros::Publisher& mnist_pub)
     }
 }
 
+int ControlSM::sendBlockID()
+{
+    if (!serial_send)
+        return -1;
+    if (sudoku_fresh && led_fresh
+        && (state == LED_ONE || state == LED_TWO || state == LED_THREE
+               || state == LED_FOUR || state == LED_FIVE)) {
+        serial_send = false;
+        return getBlockIdNow();
+    } else {
+        return -1;
+    }
+}
+
 int ControlSM::getLedNow()
 {
     if (state <= READY)
@@ -207,6 +221,7 @@ void ControlSM::freshCtr()
         break;
     case LED_ONE:
         mnist_id_publish = true;
+        serial_send = true;
         sudoku_run = led_run = mnist_run = false;
         break;
     case ONE_TWO:
@@ -216,6 +231,7 @@ void ControlSM::freshCtr()
         break;
     case LED_TWO:
         mnist_id_publish = true;
+        serial_send = true;
         sudoku_run = led_run = mnist_run = false;
         break;
     case TWO_THREE:
@@ -225,6 +241,7 @@ void ControlSM::freshCtr()
         break;
     case LED_THREE:
         mnist_id_publish = true;
+        serial_send = true;
         sudoku_run = led_run = mnist_run = false;
         break;
     case THREE_FOUR:
@@ -234,6 +251,7 @@ void ControlSM::freshCtr()
         break;
     case LED_FOUR:
         mnist_id_publish = true;
+        serial_send = true;
         sudoku_run = led_run = mnist_run = false;
         break;
     case FOUR_FIVE:
@@ -243,6 +261,7 @@ void ControlSM::freshCtr()
         break;
     case LED_FIVE:
         mnist_id_publish = true;
+        serial_send = true;
         sudoku_run = led_run = mnist_run = false;
         break;
     default:

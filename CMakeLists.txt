@@ -257,6 +257,7 @@ target_link_libraries(led_solver_node
 add_executable(control_node
     ./src/control_node.cpp
     ./src/state_machine.cpp
+    ./src/Serial.cpp
     )
 target_link_libraries(control_node 
     ${catkin_LIBRARIES}
@@ -303,14 +304,14 @@ target_link_libraries(aim_node
     ${catkin_LIBRARIES}
     ${OpenCV_LIBS}
     )
-add_executable(serial_node
-    ./src/serial_node.cpp
-    ./src/Serial.cpp
-    )
-target_link_libraries(serial_node 
-    ${catkin_LIBRARIES}
-    ${OpenCV_LIBS}
-    )
+#add_executable(serial_node
+    #./src/serial_node.cpp
+    #./src/Serial.cpp
+    #)
+#target_link_libraries(serial_node 
+    #${catkin_LIBRARIES}
+    #${OpenCV_LIBS}
+    #)
 add_executable(tick_node
     ./src/tick_node.cpp
     )

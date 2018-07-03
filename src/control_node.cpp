@@ -1,13 +1,14 @@
 #include "state_machine.h"
-#include "OpenUart.h"
+#include "Serial.h"
 
 static ros::Publisher aim_num_pub;
 static ros::Publisher sudoku_ctr_pub;
 static ros::Publisher led_ctr_pub;
 static ros::Publisher mnist_ctr_pub;
-static ros::Publisher mnist_id_pub;
+//static ros::Publisher mnist_id_pub;
 static ros::Publisher fire_ctr_pub;
 static ControlSM csm;
+static Serial serial;
 
 void ledNumCallback(const std_msgs::Int16MultiArray& msg)
 {
@@ -72,7 +73,13 @@ void csmTimerCallback(const ros::TimerEvent&)
 {
     csm.run();
     csm.publishSudokuLedMnist(sudoku_ctr_pub, led_ctr_pub, mnist_ctr_pub);
-    csm.publishMnist(mnist_id_pub);
+    char block_id;
+    block_id = csm.sendBlockID();
+    if (block_id > 0) {
+        ROS_INFO_STREAM("Send Block Id: " << (int)block_id);
+        serial.sendString(&block_id, 1);
+    } 
+    //csm.publishMnist(mnist_id_pub);
 }
 
 int main(int argc, char* argv[])
@@ -102,11 +109,17 @@ int main(int argc, char* argv[])
         = nh.advertise<std_msgs::Bool>("buff/led_ctr", 1);
     mnist_ctr_pub
         = nh.advertise<std_msgs::Bool>("buff/mnist_ctr", 1);
-    mnist_id_pub
-        = nh.advertise<std_msgs::Int16MultiArray>("buff/mnist_id", 1);
+    //mnist_id_pub
+        //= nh.advertise<std_msgs::Int16MultiArray>("buff/mnist_id", 1);
     fire_ctr_pub
         = nh.advertise<std_msgs::Bool>("buff/fire_ctr", 1);
 
+    if (argv[1] == NULL) {
+        ROS_ERROR("Control argv[1] == NULL");
+        serial.init("/dev/ttyUSB0");
+    } else {
+        serial.init(argv[1]);
+    }
     csm.init();
     ros::spin();
 
