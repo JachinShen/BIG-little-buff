@@ -30,8 +30,8 @@ using namespace cv;
 #define PC           0
 #define MANIFOLD     1
 
-#define VIDEO_FILE   0
-#define VIDEO_CAMERA 1
+//#define VIDEO_FILE   0
+//#define VIDEO_CAMERA 1
 
 #define NO_SHOW      0
 #define SHOW_ALL     1
@@ -48,10 +48,10 @@ using namespace cv;
 #endif
 
 #if PLATFORM == PC
-#   define VIDEO         VIDEO_FILE
+//#   define VIDEO         VIDEO_FILE
 #   define DRAW          SHOW_ALL
 #elif PLATFORM == MANIFOLD
-#   define VIDEO         VIDEO_CAMERA
+//#   define VIDEO         VIDEO_CAMERA
 #   define DRAW          NO_SHOW
 #endif
 

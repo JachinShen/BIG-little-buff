@@ -22,7 +22,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   sensor_msgs
   std_msgs
-  message_generation
+  #message_generation
 )
 
 ## System dependencies are found with CMake's conventions
@@ -59,13 +59,14 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
- add_message_files(
-   FILES
-   sudoku_position.msg
-#   mode.msg
-#   Message1.msg
-#   Message2.msg
- )
+ #add_message_files(
+   #FILES
+   #Rect.msg
+   ##sudoku_position.msg
+##   mode.msg
+##   Message1.msg
+##   Message2.msg
+ #)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -82,10 +83,12 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-generate_messages(
-   DEPENDENCIES
-#   sensor_msgs#   std_msgs
-)
+#generate_messages(
+   #DEPENDENCIES
+   #sensor_msgs
+   #std_msgs
+   #sensor_msgs   std_msgs
+#)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -242,12 +245,12 @@ target_link_libraries(sudoku_node
     ${catkin_LIBRARIES}
     ${OpenCV_LIBS}
     )
-add_executable(led_num_node 
+add_executable(led_solver_node 
     ./src/led_solver_node.cpp
     ./src/sudoku/LedSolver.cpp
     ./src/sudoku/RectSort.cpp
     )
-target_link_libraries(led_num_node 
+target_link_libraries(led_solver_node 
     ${catkin_LIBRARIES}
     ${OpenCV_LIBS}
     )
@@ -270,6 +273,7 @@ add_executable(mnist_node
     ./src/mnist_node.cpp
     ./src/sudoku/DnnClassifier.cpp
     ./src/sudoku/caffe_prototype.cpp
+    ./src/sudoku/RectSort.cpp
     )
 target_link_libraries(mnist_node 
     ${catkin_LIBRARIES}
@@ -281,6 +285,7 @@ add_executable(fire_node
     ./src/fire_node.cpp
     ./src/sudoku/DnnClassifier.cpp
     ./src/sudoku/caffe_prototype.cpp
+    ./src/sudoku/RectSort.cpp
     )
 target_link_libraries(fire_node 
     ${catkin_LIBRARIES}
@@ -290,6 +295,7 @@ target_link_libraries(fire_node
     )
 add_executable(aim_node
     ./src/aim_node.cpp
+    ./src/sudoku/BlockSplit.cpp
     ./src/kcftracker.cpp
     ./src/fhog.cpp
     )
@@ -305,25 +311,10 @@ target_link_libraries(serial_node
     ${catkin_LIBRARIES}
     ${OpenCV_LIBS}
     )
-#add_executable(zyrec src/main.cpp
-					  #src/Capture.cpp
-					  #src/InitParam.cpp
-					  #src/TString.cpp
-					  #src/sudoku_new/HandWritingSolver.cpp
-					  #src/sudoku_new/BlockSplit.cpp
-					  #src/sudoku_new/LedNumberSolver.cpp
-					  #src/sudoku_new/LogicProcess.cpp
-					   #src/sudoku_new/caffe_prototype.cpp
-					  #src/sudoku_old/BlockSplit.cpp)
-#add_dependencies(zyrec uart_node_generate_messages_cpp
-#)
-#target_link_libraries(zyrec
-	#${catkin_LIBRARIES} 
-	#${OpenCV_LIBS}
-	#-lcaffe
-	#glog
-#)
-#add_executable(readuart src/readuart.cpp)
-#target_link_libraries(readuart
-	#${catkin_LIBRARIES}
-	#)
+add_executable(tick_node
+    ./src/tick_node.cpp
+    )
+target_link_libraries(tick_node 
+    ${catkin_LIBRARIES}
+    ${OpenCV_LIBS}
+    )

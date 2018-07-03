@@ -107,14 +107,18 @@ void BlockSplit::setParam(int index, int data)
 bool BlockSplit::process(Mat& input, Rect& led_rect,
     Rect& sudoku_rect)
 {
-    static Mat gray, yellow, binary;
+    static Mat gray, binary;
     static Mat draw;
     vector<vector<Point> > contours;
     vector<Rect> side_blocks;
     vector<Rect> blocks;
 
     draw = input.clone();
-    cvtColor(input, gray, CV_BGR2GRAY);
+    if (input.channels() == 1) {
+        gray = input;
+    } else {
+        cvtColor(input, gray, CV_BGR2GRAY);
+    }
     threshold(gray, binary, param[GRAY_THRES], 255, THRESH_BINARY);
     findContours(binary.clone(), contours, CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE);
 
@@ -139,12 +143,12 @@ bool BlockSplit::process(Mat& input, Rect& led_rect,
     }
 
     for (uint i = 0; i < side_blocks.size(); ++i) {
-        rectangle(draw, side_blocks[i], Scalar(255, 0, 255), 2);
+        rectangle(draw, side_blocks[i], 255, 2);
     }
     imshow("sudoku draw", draw);
     imshow("sudoku binary", binary);
 
-    if (side_blocks.size() < 8)
+    if (side_blocks.size() != 10)
         return false;
 
     int top_left_x = input.cols,
@@ -176,6 +180,8 @@ bool BlockSplit::process(Mat& input, Rect& led_rect,
 
     sudoku_rect = Rect(whole_block_x + 10, whole_block_y,
             whole_block_width - 20, whole_block_height);
+
+    //cout << "Sudoku Rect: " << sudoku_rect << endl;
 
     //Mat block_roi = binary(whole_block);
     //imshow("block roi", block_roi);
@@ -219,8 +225,8 @@ bool BlockSplit::process(Mat& input, Rect& led_rect,
     ////int top_y = blocks[0].y;
     ////int top_width = blocks[blocks.size()-1].x - top_x;
 
-    //led_rect = Rect(whole_block_x, 0, 
-            //whole_block_width, whole_block_y);
+    led_rect = Rect(whole_block_x, 0, 
+            whole_block_width, whole_block_y);
 
     //copy(blocks.begin(), blocks.end(), back_inserter(handwrite_rects));
 

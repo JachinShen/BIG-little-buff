@@ -1,56 +1,53 @@
-/*********************************************************************
-recognize the 7-segment led number
-Copyright 2018 JachinShen
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*********************************************************************/
-
 #include "sudoku/LedSolver.h"
-
-namespace sudoku {
 
 LedSolver::LedSolver()
 {
-    hog = NULL;
+    //hog = NULL;
 }
 
-void LedSolver::init(const char* file)
+//void LedSolver::init(const char* file)
+void LedSolver::init()
 {
-    svm    = SVM::create();
-    svm    = svm->load(file);
+    //svm    = SVM::create();
+    //svm    = svm->load(file);
     kernel = getStructuringElement(MORPH_RECT, Size(3, 3));
-    hog    = new cv::HOGDescriptor(cvSize(28, 28), cvSize(14, 14), cvSize(7, 7), cvSize(7, 7), 9);
+    //hog    = new cv::HOGDescriptor(cvSize(28, 28), cvSize(14, 14), cvSize(7, 7), cvSize(7, 7), 9);
 
     for (int i = 0; i < 5; ++i)
         results[i] = -1;
 
-    RED_THRESHOLD = 128;
-    GRAY_THRESHOLD = 128;
+	param[RED_THRESHOLD]          = 128;
+	param[GRAY_THRESHOLD]         = 128;
+	param[BOUND_AREA_MAX]         = 30;
+	param[BOUND_AREA_MAX]         = 100;
+	param[HW_RATIO_MIN]           = 130;
+	param[HW_RATIO_MAX]           = 1000;
+	param[HW_RATIO_FOR_DIGIT_ONE] = 250;
+	param[ROTATION_DEGREE]        = 5;
+
+    //RED_THRESHOLD = 128;
+    //GRAY_THRESHOLD = 128;
 }
 
 LedSolver::~LedSolver()
 {
-    if (hog != NULL)
-        delete hog;
+    //if (hog != NULL)
+        //delete hog;
 }
 
 void LedSolver::setParam(int index, int value)
 {
-    switch(index) {
-        case 1: RED_THRESHOLD = value; break;
-        case 2: GRAY_THRESHOLD = value; break;
-        default: break;
+	if (0 <= index && index < PARAM_SIZE) {
+        param[index] = value;
+        return;
+    } else {
+        cout << "Set Param Error!" << endl;
     }
+    //switch(index) {
+      //  case 1: RED_THRESHOLD = value; break;
+      //  case 2: GRAY_THRESHOLD = value; break;
+      //  default: break;
+    //}
 }
 
 void LedSolver::getRed(Mat& led_roi, Mat& led_roi_binary)
@@ -60,11 +57,11 @@ void LedSolver::getRed(Mat& led_roi, Mat& led_roi_binary)
     static Mat led_roi_gray;
 
     cvtColor(led_roi, led_roi_gray, COLOR_BGR2GRAY);
-    threshold(led_roi_gray, led_roi_gray, GRAY_THRESHOLD, 255, THRESH_BINARY);
+    threshold(led_roi_gray, led_roi_gray, param[GRAY_THRESHOLD], 255, THRESH_BINARY);
 
     split(led_roi, bgr_split);
     led_roi_red = 2 * bgr_split[2] - bgr_split[1] - bgr_split[0];
-    threshold(led_roi_red, led_roi_red, RED_THRESHOLD, 255, THRESH_BINARY);
+    threshold(led_roi_red, led_roi_red, param[RED_THRESHOLD], 255, THRESH_BINARY);
 
     led_roi_binary = led_roi_red & led_roi_gray;
     dilate(led_roi_binary, led_roi_binary, kernel);
@@ -76,7 +73,6 @@ bool LedSolver::process(Mat& led_roi)
     static Mat led_roi_binary;
 #if DRAW == SHOW_ALL
     static Mat draw;
-    char window_name[15] = "segment roi1";
 #endif
     vector<vector<Point> > contours;
     vector<Rect> digits;
@@ -92,52 +88,51 @@ bool LedSolver::process(Mat& led_roi)
         if (bound.x < 10 || bound.x + bound.width > led_roi.cols - 10
             || bound.y < 10 || bound.y + bound.height > led_roi.rows)
             continue;
-        if (bound.area() < 100)
+        if (bound.area() < param[BOUND_AREA_MIN] || bound.area() > param[BOUND_AREA_MAX])
             continue;
         float hw_ratio = (float)bound.height / bound.width;
         if (hw_ratio < 1.0)
             continue;
             //hw_ratio = 1.0 / hw_ratio;
         //cout << "HW ratio: " << hw_ratio << endl;
-        if (hw_ratio < 1.3 || hw_ratio > 10)
+        if (hw_ratio < param[HW_RATIO_MIN]/100.0 || hw_ratio > param[HW_RATIO_MAX]/100.0)
             continue;
         digits.push_back(bound);
     }
 
+    if (digits.size() != 5) {
+        ROS_INFO("Clear vector");
+        digits.clear(); // add for secure, otherwise munmap_chunk() error will be raised if there are too many elements in the vector (about 30)
+        return false;
+    }
+
     sort(digits.begin(), digits.end(), compareRect);
+    for (int i=0; i<5; ++i) {
+        results[i] = -1;
+    }
+
+    for (uint i = 0; i < digits.size(); ++i) {
+        float hw_ratio = (float)digits[i].height / digits[i].width;
+        if (hw_ratio < 1.0)
+            hw_ratio = 1.0 / hw_ratio;
+        if (hw_ratio > param[HW_RATIO_FOR_DIGIT_ONE]/100.0) {
+            results[i] = 1;
+            continue;
+        }
+        Mat roi = (led_roi_binary)(digits[i]);
+        Point center = Point(digits[i].width / 2, digits[i].height / 2);
+        Mat M2 = getRotationMatrix2D(center, param[ROTATION_DEGREE], 1);
+        warpAffine(roi, roi, M2, roi.size(), 1, 0, 0);
+        results[i] = predictCross(roi);
+    }
 
 #if DRAW == SHOW_ALL
     for (uint i = 0; i < digits.size(); ++i) {
         rectangle(draw, digits[i], Scalar(255, 0, 0), 2);
     }
     imshow("draw", draw);
+    imshow("Cross Led Red Binary: ", led_roi_binary);
 #endif
-
-    if (digits.size() > 5)
-        return false;
-
-    for (uint i = 0; i < digits.size(); ++i) {
-        float hw_ratio = (float)digits[i].height / digits[i].width;
-        if (hw_ratio < 1.0)
-            hw_ratio = 1.0 / hw_ratio;
-        if (hw_ratio > 2.5) {
-            results[i] = 1;
-            continue;
-        }
-        Mat roi = (led_roi_binary)(digits[i]).clone();
-        Point center = Point(digits[i].width / 2, digits[i].height / 2);
-        Mat M2 = getRotationMatrix2D(center, 5, 1);
-        warpAffine(roi, roi, M2, roi.size(), 1, 0, 0);
-        results[i] = predictCross(roi);
-#if DRAW == SHOW_ALL
-        window_name[11] = i + 1 + '0';
-        imshow(window_name, roi);
-#endif
-        //if (results[i] == -1) {
-            //roi = (~led_roi_binary)(digits[i]).clone();
-            //results[i] = predictSVM(roi);
-        //}
-    }
 
     return true;
 }
@@ -226,21 +221,21 @@ int LedSolver::predictCross(Mat& roi)
     }
 }
 
-int LedSolver::predictSVM(Mat& roi)
-{
-    vector<float> descriptors;
-    //dilate(roi, roi, kernel);
-    //erode(roi, roi, kernel);
-    resize(roi, roi, Size(20, 20));
-    Mat inner = Mat::ones(28, 28, CV_8UC1) + 254;
-    roi.copyTo(inner(Rect(4, 4, 20, 20)));
-    //imshow("inner", inner);
-    hog->compute(inner, descriptors, Size(1, 1), Size(0, 0));
+//int LedSolver::predictSVM(Mat& roi)
+//{
+    //vector<float> descriptors;
+    ////dilate(roi, roi, kernel);
+    ////erode(roi, roi, kernel);
+    //resize(roi, roi, Size(20, 20));
+    //Mat inner = Mat::ones(28, 28, CV_8UC1) + 254;
+    //roi.copyTo(inner(Rect(4, 4, 20, 20)));
+    ////imshow("inner", inner);
+    //hog->compute(inner, descriptors, Size(1, 1), Size(0, 0));
 
-    Mat SVMPredictMat = Mat(1, (int)descriptors.size(), CV_32FC1);
-    memcpy(SVMPredictMat.data, descriptors.data(), descriptors.size() * sizeof(float));
-    return (svm->predict(SVMPredictMat));
-}
+    //Mat SVMPredictMat = Mat(1, (int)descriptors.size(), CV_32FC1);
+    //memcpy(SVMPredictMat.data, descriptors.data(), descriptors.size() * sizeof(float));
+    //return (svm->predict(SVMPredictMat));
+//}
 
 int LedSolver::getResult(int index)
 {
@@ -248,4 +243,13 @@ int LedSolver::getResult(int index)
         return -1;
     return results[index];
 }
+
+bool LedSolver::confirmLed()
+{
+    for (int i=0; i<5; ++i) {
+        if (results[i] == -1) {
+            return false;
+        }
+    }
+    return true;
 }
