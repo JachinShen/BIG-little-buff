@@ -7,7 +7,7 @@ public:
     void init();
     void run();
     void tick(bool msg_data);
-    void publishSudokuLedMnist(ros::Publisher&, ros::Publisher&, ros::Publisher&);
+    void publishSudokuLedMnistFire(ros::Publisher&, ros::Publisher&, ros::Publisher&, ros::Publisher&);
     void publishMnist(ros::Publisher&);
     void setLed(vector<int16_t> data);
     void setSudoku(vector<int16_t> data);
@@ -66,4 +66,14 @@ private:
     void transferNext();
     bool sudokuChange();
     void freshCtr();
+
+    inline void activateSudoku() {sudoku_run = true;}
+    inline void pauseSudoku() {sudoku_run = false;}
+    inline void activateLedMnistFire() {led_run = mnist_run = fire_run = true;}
+    inline void pauseLedMnistFire() {led_run = mnist_run = fire_run = false;}
+    inline void activateTick() {tick_run = true;}
+    inline void pauseTick() {tick_run = false;}
+    inline void activateSerial() {serial_send = true;}
+    inline void resetSudokuFound() {sudoku_found = false;}
+    inline void needFreshLedSudoku() {sudoku_fresh = led_fresh = false;}
 };

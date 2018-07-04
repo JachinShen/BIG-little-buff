@@ -68,7 +68,7 @@ bool LedSolver::process(Mat& led_roi)
 #if DRAW == SHOW_ALL
     static Mat draw;
 #endif
-    vector<vector<Point>> contours;
+    vector<vector<Point> > contours;
     //TODO: The position of digits doesn't change often
     //We can check whether we can extract number from the old position
     //If not, extract the position again.
@@ -163,13 +163,14 @@ int LedSolver::scanSegmentY(Mat& roi, int line_y, int x_begin, int x_end)
 
 int LedSolver::predictCross(Mat& roi)
 {
-#define SEGMENT_A 0x01;
-#define SEGMENT_B 0x02;
-#define SEGMENT_C 0x04;
-#define SEGMENT_D 0x08;
-#define SEGMENT_E 0x10;
-#define SEGMENT_F 0x20;
-#define SEGMENT_G 0x40;
+#define SEGMENT_A 0x01
+#define SEGMENT_B 0x02
+#define SEGMENT_C 0x04
+#define SEGMENT_D 0x08
+#define SEGMENT_E 0x10
+#define SEGMENT_F 0x20
+#define SEGMENT_G 0x40
+#define SEGMENT_THRES 1
 
     int mid_x = roi.cols / 2;
     int one_sixth_x = roi.cols / 6;
@@ -211,19 +212,19 @@ int LedSolver::predictCross(Mat& roi)
     //for (int i=0; i<7; ++i) {
     //cout << "segment " << i << " hit: " <<supporta[i]<<" "<< segment_hit[i] << " "<<supportb[i] << endl;
     //}
-    if (segment_hit[0] > 2 && supporta[0] > 2 && supportb[0] > 2)
+    if (segment_hit[0] > SEGMENT_THRES && supporta[0] > SEGMENT_THRES && supportb[0] > SEGMENT_THRES)
         segment |= SEGMENT_F;
-    if (segment_hit[1] > 2 && supporta[1] > 2 && supportb[1] > 2)
+    if (segment_hit[1] > SEGMENT_THRES && supporta[1] > SEGMENT_THRES && supportb[1] > SEGMENT_THRES)
         segment |= SEGMENT_B;
-    if (segment_hit[2] > 2 && supporta[2] > 2 && supportb[2] > 2)
+    if (segment_hit[2] > SEGMENT_THRES && supporta[2] > SEGMENT_THRES && supportb[2] > SEGMENT_THRES)
         segment |= SEGMENT_E;
-    if (segment_hit[3] > 2 && supporta[3] > 2 && supportb[3] > 2)
+    if (segment_hit[3] > SEGMENT_THRES && supporta[3] > SEGMENT_THRES && supportb[3] > SEGMENT_THRES)
         segment |= SEGMENT_C;
-    if (segment_hit[4] > 2 && supporta[4] > 2 && supportb[4] > 2)
+    if (segment_hit[4] > SEGMENT_THRES && supporta[4] > SEGMENT_THRES && supportb[4] > SEGMENT_THRES)
         segment |= SEGMENT_A;
-    if (segment_hit[5] > 2 && supporta[5] > 2 && supportb[5] > 2)
+    if (segment_hit[5] > SEGMENT_THRES && supporta[5] > SEGMENT_THRES && supportb[5] > SEGMENT_THRES)
         segment |= SEGMENT_G;
-    if (segment_hit[6] > 2 && supporta[6] > 2 && supportb[6] > 2)
+    if (segment_hit[6] > SEGMENT_THRES && supporta[6] > SEGMENT_THRES && supportb[6] > SEGMENT_THRES)
         segment |= SEGMENT_D;
 
     //cout << "Segment: " << segment << endl;

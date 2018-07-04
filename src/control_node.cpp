@@ -41,12 +41,19 @@ void mnistNumCallback(const std_msgs::Int16MultiArray& msg)
 
 void fireNumCallback(const std_msgs::Int16MultiArray& msg)
 {
-    //cout << "Fire:";
-    //for (uint i = 0; i < msg.data.size(); ++i) {
-        //csm.setSudoku(i, msg.data[i]);
-        //cout << " " << msg.data[i];
-    //}
-    //cout << endl;
+    if (msg.data.size() != 20) {
+        ROS_ERROR("Control Mnist");
+        return;
+    }
+    csm.setSudoku(msg.data);
+    ROS_INFO_STREAM("Fire: " << msg.data[0] << msg.data[1]
+            << msg.data[2] << msg.data[3] << msg.data[4]
+            << msg.data[5] << msg.data[6] << msg.data[7]
+            << msg.data[8] << msg.data[9]);
+    ROS_INFO_STREAM("Fire Possibility: " << msg.data[10] << msg.data[11]
+            << msg.data[12] << msg.data[13] << msg.data[14]
+            << msg.data[15] << msg.data[16] << msg.data[17]
+            << msg.data[18] << msg.data[19]);
 }
 
 void fireRectCallback(const std_msgs::Int16MultiArray& msg)
@@ -72,7 +79,7 @@ void sudokuRectCallback(const std_msgs::Int16MultiArray&)
 void csmTimerCallback(const ros::TimerEvent&)
 {
     csm.run();
-    csm.publishSudokuLedMnist(sudoku_ctr_pub, led_ctr_pub, mnist_ctr_pub);
+    csm.publishSudokuLedMnistFire(sudoku_ctr_pub, led_ctr_pub, mnist_ctr_pub, fire_ctr_pub);
     char block_id;
     block_id = csm.sendBlockID();
     if (block_id > 0) {

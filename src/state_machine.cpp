@@ -58,9 +58,9 @@ void ControlSM::run()
             transferState(READY);
         }
     } else if (state == READY) {
-        if (wait_for_demarcate) {
-            return;
-        }
+        //if (wait_for_demarcate) {
+            //return;
+        //}
         ++ready_state_ctr;
         if (led[0] != -1) {
             //ROS_INFO_STREAM("Ready Sudoku Confirm: " << sudoku_confirm[led[0]]);
@@ -147,19 +147,21 @@ void ControlSM::checkLed()
     led_remain = (led_diff <= 1);
 }
 
-void ControlSM::publishSudokuLedMnist(ros::Publisher& sudoku_pub,
-    ros::Publisher& led_pub, ros::Publisher& mnist_pub)
+void ControlSM::publishSudokuLedMnistFire(ros::Publisher& sudoku_pub,
+    ros::Publisher& led_pub, ros::Publisher& mnist_pub, ros::Publisher& fire_pub)
 {
     if (!publish_run) {
         return;
     }
-    static std_msgs::Bool sudoku_msg, led_msg, mnist_msg;
+    static std_msgs::Bool sudoku_msg, led_msg, mnist_msg, fire_msg;
     sudoku_msg.data = sudoku_run;
     led_msg.data = led_run;
     mnist_msg.data = mnist_run;
+    fire_msg.data = fire_run;
     sudoku_pub.publish(sudoku_msg);
     led_pub.publish(led_msg);
     mnist_pub.publish(mnist_msg);
+    fire_pub.publish(fire_msg);
     publish_run = false;
 }
 
@@ -216,68 +218,34 @@ int ControlSM::getBlockIdNow()
 
 void ControlSM::freshCtr()
 {
-    switch (state) {
-    case WAIT:
-        sudoku_run = true;
-        sudoku_found = led_run = mnist_run = tick_run = false;
-        break;
-    case READY:
+    if (state == WAIT) {
+        activateSudoku();
+        pauseLedMnistFire();
+        pauseTick();
+        resetSudokuFound();
+    } else if (state == READY) {
         wait_for_demarcate = true;
-        serial_send = true;
-        sudoku_fresh = false;
-        led_fresh = false;
-        led_run = mnist_run = tick_run = true;
-        sudoku_run = true;
-        break;
-    case LED_ONE:
+        activateSerial();
+        activateLedMnistFire();
+        activateTick();
+        activateSudoku();
+        needFreshLedSudoku();
+    } else if (state == LED_ONE || state == LED_TWO
+            || state == LED_THREE || state == LED_FOUR
+            || state == LED_FIVE) {
         mnist_id_publish = true;
-        serial_send = true;
-        sudoku_run = led_run = mnist_run = false;
-        break;
-    case ONE_TWO:
-        sudoku_fresh = false;
-        led_fresh = false;
-        sudoku_run = led_run = mnist_run = true;
-        break;
-    case LED_TWO:
-        mnist_id_publish = true;
-        serial_send = true;
-        sudoku_run = led_run = mnist_run = false;
-        break;
-    case TWO_THREE:
-        sudoku_fresh = false;
-        led_fresh = false;
-        sudoku_run = led_run = mnist_run = true;
-        break;
-    case LED_THREE:
-        mnist_id_publish = true;
-        serial_send = true;
-        sudoku_run = led_run = mnist_run = false;
-        break;
-    case THREE_FOUR:
-        sudoku_fresh = false;
-        led_fresh = false;
-        sudoku_run = led_run = mnist_run = true;
-        break;
-    case LED_FOUR:
-        mnist_id_publish = true;
-        serial_send = true;
-        sudoku_run = led_run = mnist_run = false;
-        break;
-    case FOUR_FIVE:
-        sudoku_fresh = false;
-        led_fresh = false;
-        sudoku_run = led_run = mnist_run = true;
-        break;
-    case LED_FIVE:
-        mnist_id_publish = true;
-        serial_send = true;
-        sudoku_run = led_run = mnist_run = false;
-        break;
-    default:
+        activateSerial();
+        pauseSudoku();
+        pauseLedMnistFire();
+    } else if (state == ONE_TWO || state == TWO_THREE
+            || state == THREE_FOUR || state == FOUR_FIVE) {
+        needFreshLedSudoku();
+        activateSudoku();
+        activateLedMnistFire();
+    } else {
         state = WAIT;
-        sudoku_run = led_run = mnist_run = true;
-        break;
+        activateSudoku();
+        activateLedMnistFire();
     }
 }
 
