@@ -20,9 +20,11 @@ private:
 
 private:
     int set_opt(int, int, int, char, int);
+    char receive_buf[30];
 
 public:
     void init(string port);
     void sendString(char* data, int length);
     void sendTarget(int, int, int);
+    int receive();
 };

@@ -105,6 +105,11 @@ void Serial::sendString(char* data, int length)
     //}
 }
 
+int Serial::receive()
+{
+    return read(fd, receive_buf, 30);
+}
+
 void Serial::sendTarget(int target_x, int target_y, int is_found)
 {
 
