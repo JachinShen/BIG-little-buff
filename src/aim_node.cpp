@@ -1,6 +1,7 @@
 #include "kcftracker.hpp"
 #include "sudoku/BlockSplit.h"
 #include "Headers.h"
+#include "GlobalCamera.h"
 
 static Mat                        frame;
 static Rect                       aim_rect;
@@ -43,6 +44,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 
 void aimReadyCallback(const std_msgs::Bool& msg)
 {
+    ROS_INFO("Aim Ready Call!");
     aim_ready_run = msg.data;
     process();
     //aim_rect = Rect(msg.data[0], msg.data[1], msg.data[2], msg.data[3]);
@@ -76,39 +78,66 @@ int main(int argc, char* argv[])
 
     Rect led_rect, sudoku_rect;
     enum {VIDEO_FILE, VIDEO_CAMERA} video_type;
+    block_split.init();
     while(nh.ok()) {
         cv::VideoCapture cap;
+        GlobalCamera global_cap;
+        aim_ready_run = false;
         if ('0' <= argv[1][0] && argv[1][0] <= '9') {
             video_type = VIDEO_CAMERA;
-            cap.open(argv[1][0] - '0');
+            //cap.open(argv[1][0] - '0');
+            if(global_cap.init()<0) {
+                ROS_ERROR("Global Shutter Camera Init Failed!");
+                continue;
+            }
         } else {
             video_type = VIDEO_FILE;
             cap.open(argv[1]);
+            if (!cap.isOpened()) {
+                ROS_INFO("can not opencv video device");
+                return 1;
+            }
+            ROS_INFO("open successfully");
         }
 
-        if (!cap.isOpened()) {
-            ROS_INFO("can not opencv video device");
-            return 1;
-        }
-        ROS_INFO("open successfully");
-
-        while(cap.read(frame) && ros::ok()) {
-            if (frame.empty())
-                continue;
-            resize(frame, frame, Size(640, 480));
-            if (frame.channels() != 1) {
-                cvtColor(frame, frame, CV_BGR2GRAY);
+        if (video_type == VIDEO_CAMERA) {
+            while(global_cap.read(frame) && ros::ok()) {
+                if (frame.empty())
+                    continue;
+                //resize(frame, frame, Size(640, 480));
+                //if (frame.channels() != 1) {
+                    //cvtColor(frame, frame, CV_BGR2GRAY);
+                //}
+                ros::spinOnce();
+                if (aim_rect.area() != 0) {
+                    aim_rect = tracker.update(frame);
+                    rectangle(frame, aim_rect, 255, 4);
+                } else {
+                    process();
+                }
+                imshow("aim src", frame);
+                waitKey(1);
+                //loop_rate.sleep();
             }
-            ros::spinOnce();
-            if (aim_rect.area() != 0) {
-                aim_rect = tracker.update(frame);
-                rectangle(frame, aim_rect, 255, 4);
-            } else {
-                process();
+        } else if (video_type == VIDEO_FILE) {
+            while(cap.read(frame) && ros::ok()) {
+                if (frame.empty())
+                    continue;
+                resize(frame, frame, Size(640, 480));
+                if (frame.channels() != 1) {
+                    cvtColor(frame, frame, CV_BGR2GRAY);
+                }
+                ros::spinOnce();
+                if (aim_rect.area() != 0) {
+                    aim_rect = tracker.update(frame);
+                    rectangle(frame, aim_rect, 255, 4);
+                } else {
+                    process();
+                }
+                imshow("aim src", frame);
+                waitKey(1);
+                loop_rate.sleep();
             }
-            imshow("aim src", frame);
-            waitKey(1);
-            loop_rate.sleep();
         }
     }
 

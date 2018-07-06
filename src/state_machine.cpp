@@ -58,9 +58,9 @@ void ControlSM::run()
             transferState(READY);
         }
     } else if (state == READY) {
-        //if (wait_for_demarcate) {
-            //return;
-        //}
+        if (wait_for_demarcate) {
+            return;
+        }
         ++ready_state_ctr;
         if (led[0] != -1) {
             //ROS_INFO_STREAM("Ready Sudoku Confirm: " << sudoku_confirm[led[0]]);
@@ -186,10 +186,16 @@ void ControlSM::publishMnist(ros::Publisher& mnist_pub)
 
 int ControlSM::sendBlockID()
 {
+    static int ready_ctr=0;
     if (!serial_send)
         return -1;
     if (state == READY) {
-        serial_send = false;
+        if (ready_ctr > 5) {
+            ready_ctr = 0;
+            serial_send = false;
+        } else {
+            ++ready_ctr;
+        }
         return 0;
     }
     if (sudoku_fresh && led_fresh
