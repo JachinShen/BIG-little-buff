@@ -1,7 +1,7 @@
 <launch>
       <node pkg="buff" name="image_publish_node" type="image_publish_node" args="/home/jachinshen/Videos/Robo/warmingup/VID_20180406_140726.mp4"/>
       <!--<node pkg="buff" name="image_publish_node" type="image_publish_node" args="1"/>-->
-      <!--<node pkg="buff" name="aim_node" type="aim_node" args="0" launch-prefix="cat ~/Projects/lunar_ws/password | sudo -ES" output="screen"/>-->
+      <!--<node pkg="buff" name="aim_node" type="aim_node" args="/home/jachinshen/Videos/Robo/warmingup/VID_20180406_140726.mp4" output="screen"/>-->
     <node pkg="buff" name="sudoku_node" type="sudoku_node" />
     <node pkg="buff" name="led_solver_node" type="led_solver_node" output="screen" />
     <node pkg="buff" name="control_node" type="control_node" args="/dev/ttyUSB0" output="screen"/>

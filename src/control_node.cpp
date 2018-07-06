@@ -76,6 +76,17 @@ void sudokuRectCallback(const std_msgs::Int16MultiArray&)
     csm.setSudokuFound();
 }
 
+void aimPosCallback(const std_msgs::Int16MultiArray& msg)
+{
+    if (msg.data.size() != 3) {
+        ROS_ERROR("Control Aim Pos");
+        return;
+    }
+    int target_x = msg.data[0], target_y = msg.data[1];
+    int is_found = msg.data[2];
+    serial.sendTarget(target_x, target_y, is_found);
+}
+
 void csmTimerCallback(const ros::TimerEvent&)
 {
     csm.run();
@@ -113,6 +124,8 @@ int main(int argc, char* argv[])
         = nh.subscribe("buff/tick", 1, tickCallback);
     ros::Subscriber sudoku_rect_sub
         = nh.subscribe("buff/sudoku_rect", 1, sudokuRectCallback);
+    ros::Subscriber aim_pos_sub
+        = nh.subscribe("buff/aim_pos", 1, aimPosCallback);
     aim_num_pub
         = nh.advertise<std_msgs::Int16MultiArray>("buff/aim_rect", 1);
     sudoku_ctr_pub

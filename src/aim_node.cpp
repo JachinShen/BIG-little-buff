@@ -1,14 +1,23 @@
+#include "GlobalCamera.h"
+#include "Headers.h"
 #include "kcftracker.hpp"
 #include "sudoku/BlockSplit.h"
-#include "Headers.h"
-#include "GlobalCamera.h"
 
-static Mat                        frame;
-static Rect                       aim_rect;
-static KCFTracker                 tracker(false, true, false, false);
+static Mat frame;
+static Rect tl_aim_rect;
+static Rect center_aim_rect;
+static Rect rb_aim_rect;
+static KCFTracker tl_tracker(false, true, false, false);
+static KCFTracker center_tracker(false, true, false, false);
+static KCFTracker rb_tracker(false, true, false, false);
 static cv_bridge::CvImageConstPtr cv_ptr;
 static bool aim_ready_run;
 static BlockSplit block_split;
+static enum TargetPos { TOP_LEFT,
+    CENTER,
+    RIGHT_BOTTOM } target_pos;
+static ros::Publisher aim_pos_pub;
+static ros::Subscriber aim_param_sub;
 
 void process()
 {
@@ -21,9 +30,64 @@ void process()
     else
         gray = frame;
     if (block_split.process(gray, led_rect, sudoku_rect)) {
-        aim_rect = Rect(sudoku_rect.x, sudoku_rect.y, sudoku_rect.width / 3, sudoku_rect.height / 3);
-        ROS_INFO_STREAM("target : " << aim_rect);
-        tracker.init(aim_rect, gray);
+        tl_aim_rect = Rect(sudoku_rect.x, sudoku_rect.y, sudoku_rect.width / 3, sudoku_rect.height / 3);
+        center_aim_rect = Rect(sudoku_rect.x + sudoku_rect.width / 3, sudoku_rect.y + sudoku_rect.height / 3,
+            sudoku_rect.width / 3, sudoku_rect.height / 3);
+        rb_aim_rect = Rect(sudoku_rect.x + sudoku_rect.width * 2 / 3, sudoku_rect.y + sudoku_rect.height * 2 / 3,
+            sudoku_rect.width / 3, sudoku_rect.height / 3);
+        ROS_INFO_STREAM("target : " << center_aim_rect);
+        tl_tracker.init(tl_aim_rect, gray);
+        center_tracker.init(center_aim_rect, gray);
+        rb_tracker.init(rb_aim_rect, gray);
+    }
+}
+
+void demarcate()
+{
+    if (center_aim_rect.area() != 0) {
+        switch (target_pos) {
+        case TOP_LEFT:
+            tl_aim_rect = tl_tracker.update(frame);
+            rectangle(frame, tl_aim_rect, 255, 4);
+        case CENTER:
+            center_aim_rect = center_tracker.update(frame);
+            rectangle(frame, center_aim_rect, 255, 4);
+        case RIGHT_BOTTOM:
+            rb_aim_rect = rb_tracker.update(frame);
+            rectangle(frame, rb_aim_rect, 255, 4);
+            break;
+        default:
+            target_pos = TOP_LEFT;
+        }
+        static std_msgs::Int16MultiArray aim_pos_msg;
+        aim_pos_msg.data.clear();
+        switch (target_pos) {
+        case TOP_LEFT:
+            aim_pos_msg.data.push_back(tl_aim_rect.x + tl_aim_rect.width / 2);
+            aim_pos_msg.data.push_back(tl_aim_rect.y + tl_aim_rect.height / 2);
+            break;
+        case CENTER:
+            aim_pos_msg.data.push_back(center_aim_rect.x + center_aim_rect.width / 2);
+            aim_pos_msg.data.push_back(center_aim_rect.y + center_aim_rect.height / 2);
+            break;
+        case RIGHT_BOTTOM:
+            aim_pos_msg.data.push_back(rb_aim_rect.x + rb_aim_rect.width / 2);
+            aim_pos_msg.data.push_back(rb_aim_rect.y + rb_aim_rect.height / 2);
+            break;
+        }
+        if (320 - 20 <= aim_pos_msg.data[0] && aim_pos_msg.data[0] <= 320 + 20) {
+            target_pos = (TargetPos)((target_pos + 1));
+            if (target_pos >= 3) {
+                aim_pos_msg.data.push_back(3);
+            } else {
+                aim_pos_msg.data.push_back(2);
+            }
+        } else {
+            aim_pos_msg.data.push_back(1);
+        }
+        aim_pos_pub.publish(aim_pos_msg);
+    } else {
+        process();
     }
 }
 
@@ -46,13 +110,14 @@ void aimReadyCallback(const std_msgs::Bool& msg)
 {
     ROS_INFO("Aim Ready Call!");
     aim_ready_run = msg.data;
+    target_pos = TOP_LEFT;
     process();
     //aim_rect = Rect(msg.data[0], msg.data[1], msg.data[2], msg.data[3]);
     //ROS_INFO_STREAM("Aim Rect: " << aim_rect);
 
     //if (aim_rect.area() == 0)
-        //return;
-    
+    //return;
+
     //static Mat car_image;
     //cvtColor(cv_ptr->image.clone(), car_image, CV_BGR2GRAY);
     //tracker.init(aim_rect, car_image);
@@ -71,22 +136,24 @@ int main(int argc, char* argv[])
     ros::Rate loop_rate(10);
 
     ros::Subscriber aim_sub = nh.subscribe("buff/aim_ready", 1, aimReadyCallback);
-    ros::Subscriber aim_param_sub = nh.subscribe("buff/aim_param", 1, aimParamCallback);
+    aim_param_sub = nh.subscribe("buff/aim_param", 1, aimParamCallback);
     image_transport::ImageTransport it(nh);
     image_transport::Subscriber sub
         = it.subscribe("camera/image", 1, imageCallback);
+    aim_pos_pub
+        = nh.advertise<std_msgs::Int16MultiArray>("buff/aim_pos", 1);
 
     Rect led_rect, sudoku_rect;
-    enum {VIDEO_FILE, VIDEO_CAMERA} video_type;
     block_split.init();
-    while(nh.ok()) {
+    while (nh.ok()) {
+        enum { VIDEO_FILE, VIDEO_CAMERA } video_type;
         cv::VideoCapture cap;
         GlobalCamera global_cap;
         aim_ready_run = false;
         if ('0' <= argv[1][0] && argv[1][0] <= '9') {
             video_type = VIDEO_CAMERA;
             //cap.open(argv[1][0] - '0');
-            if(global_cap.init()<0) {
+            if (global_cap.init() < 0) {
                 ROS_ERROR("Global Shutter Camera Init Failed!");
                 continue;
             }
@@ -101,26 +168,33 @@ int main(int argc, char* argv[])
         }
 
         if (video_type == VIDEO_CAMERA) {
-            while(global_cap.read(frame) && ros::ok()) {
+            if (! global_cap.read(frame)) {
+                ROS_ERROR("Global Shutter Camera Read Img!");
+                continue;
+            }
+            if (frame.empty()) {
+                ROS_ERROR("Global Shutter Camera Read Img Empty!");
+                continue;
+            }
+        }
+
+        if (video_type == VIDEO_CAMERA) {
+            while (ros::ok()) {
+                ros::spinOnce();
+                if (target_pos >= 3) {
+                    loop_rate.sleep();
+                    continue;
+                }
+                if (!global_cap.read(frame))
+                    continue;
                 if (frame.empty())
                     continue;
-                //resize(frame, frame, Size(640, 480));
-                //if (frame.channels() != 1) {
-                    //cvtColor(frame, frame, CV_BGR2GRAY);
-                //}
-                ros::spinOnce();
-                if (aim_rect.area() != 0) {
-                    aim_rect = tracker.update(frame);
-                    rectangle(frame, aim_rect, 255, 4);
-                } else {
-                    process();
-                }
+                demarcate();
                 imshow("aim src", frame);
                 waitKey(1);
-                //loop_rate.sleep();
             }
         } else if (video_type == VIDEO_FILE) {
-            while(cap.read(frame) && ros::ok()) {
+            while (target_pos <= 2 && cap.read(frame) && ros::ok()) {
                 if (frame.empty())
                     continue;
                 resize(frame, frame, Size(640, 480));
@@ -128,15 +202,10 @@ int main(int argc, char* argv[])
                     cvtColor(frame, frame, CV_BGR2GRAY);
                 }
                 ros::spinOnce();
-                if (aim_rect.area() != 0) {
-                    aim_rect = tracker.update(frame);
-                    rectangle(frame, aim_rect, 255, 4);
-                } else {
-                    process();
-                }
+                demarcate();
                 imshow("aim src", frame);
                 waitKey(1);
-                loop_rate.sleep();
+                //loop_rate.sleep();
             }
         }
     }

@@ -190,7 +190,7 @@ int ControlSM::sendBlockID()
     if (!serial_send)
         return -1;
     if (state == READY) {
-        if (ready_ctr > 5) {
+        if (ready_ctr > 20) {
             ready_ctr = 0;
             serial_send = false;
         } else {
