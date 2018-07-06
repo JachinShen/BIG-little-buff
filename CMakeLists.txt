@@ -303,6 +303,7 @@ add_executable(aim_node
 target_link_libraries(aim_node 
     ${catkin_LIBRARIES}
     ${OpenCV_LIBS}
+    /lib/libMVSDK.so
     )
 #add_executable(serial_node
     #./src/serial_node.cpp
