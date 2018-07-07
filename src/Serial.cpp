@@ -109,6 +109,7 @@ void Serial::sendTarget(int target_x, int target_y, int is_found)
 {
 
     if (target_x < 0 || target_x > 640 || target_y < 0 || target_y > 480) {
+        return;
         is_found = 0;
         target_x = 320;
         target_y = 240;
@@ -119,7 +120,11 @@ void Serial::sendTarget(int target_x, int target_y, int is_found)
     buf[0] = 0xA5;
     buf[1] = (target_x >> 8) & 0xFF;
     buf[2] = target_x & 0xFF;
-    if (is_found == 2) {
+    if (is_found == 4) {
+        buf[3] = 0xA2;
+    } else if (is_found == 3) {
+        buf[3] = 0xA1;
+    } else if (is_found == 2) {
         buf[3] = 0xA8;
     } else if (is_found == 1) {
         buf[3] = 0xA6;

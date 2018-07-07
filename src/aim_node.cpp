@@ -75,15 +75,16 @@ void demarcate()
             aim_pos_msg.data.push_back(rb_aim_rect.y + rb_aim_rect.height / 2);
             break;
         }
-        if (320 - 20 <= aim_pos_msg.data[0] && aim_pos_msg.data[0] <= 320 + 20) {
+        if (320 - 10 <= aim_pos_msg.data[0] && aim_pos_msg.data[0] <= 320 + 10
+                && 240-10 <= aim_pos_msg.data[1] && aim_pos_msg.data[1] <= 240 + 10) {
             target_pos = (TargetPos)((target_pos + 1));
             if (target_pos >= 3) {
-                aim_pos_msg.data.push_back(3);
+                aim_pos_msg.data.push_back(-1);
             } else {
-                aim_pos_msg.data.push_back(2);
+                aim_pos_msg.data.push_back(4);
             }
         } else {
-            aim_pos_msg.data.push_back(1);
+            aim_pos_msg.data.push_back(3);
         }
         aim_pos_pub.publish(aim_pos_msg);
     } else {
@@ -141,10 +142,11 @@ int main(int argc, char* argv[])
     image_transport::Subscriber sub
         = it.subscribe("camera/image", 1, imageCallback);
     aim_pos_pub
-        = nh.advertise<std_msgs::Int16MultiArray>("buff/aim_pos", 1);
+        = nh.advertise<std_msgs::Int16MultiArray>("buff/aim_pos", 100);
 
     Rect led_rect, sudoku_rect;
     block_split.init();
+    aim_ready_run = true;
     while (nh.ok()) {
         enum { VIDEO_FILE, VIDEO_CAMERA } video_type;
         cv::VideoCapture cap;
