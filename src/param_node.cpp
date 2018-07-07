@@ -86,9 +86,9 @@ int ledParamMax(int index)
 }
 
 static int AIM_PARAM[BlockSplit::PARAM_SIZE] = {
-    120,
+    100,
     600,
-    1000,
+    2000,
     30,
     100,
     70
