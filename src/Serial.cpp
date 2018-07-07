@@ -125,7 +125,15 @@ void Serial::sendTarget(int target_x, int target_y, int is_found)
     buf[0] = 0xA5;
     buf[1] = (target_x >> 8) & 0xFF;
     buf[2] = target_x & 0xFF;
-    if (is_found == 4) {
+    if (is_found == 11) {
+        buf[3] = 0xB1;
+    } else if (is_found == 12) {
+        buf[3] = 0xB2;
+    } else if (is_found == 13) {
+        buf[3] = 0xB3;
+    } else if (is_found == 14) {
+        buf[3] = 0xB4;
+    } else if (is_found == 4) {
         buf[3] = 0xA2;
     } else if (is_found == 3) {
         buf[3] = 0xA1;
@@ -151,3 +159,22 @@ void Serial::sendTarget(int target_x, int target_y, int is_found)
 
     sendString(buf, 7);
 };
+
+int Serial::buffMode()
+{
+    cout << "Receive: " << hex << (int)receive_buf[0]
+        << (int)receive_buf[1] << (int)receive_buf[2] << (int)receive_buf[3] << endl;
+    if ((int)receive_buf[0] == 0xff 
+            && (int)receive_buf[1] == 0x01
+            && (int)receive_buf[2] == 0x00
+            && (int)receive_buf[3] == 0xfe) {
+        return 1;
+    }
+    if ((int)receive_buf[0] == 0xff 
+            && (int)receive_buf[1] == 0x02
+            && (int)receive_buf[2] == 0x00
+            && (int)receive_buf[3] == 0xfe) {
+        return 2;
+    }
+    return 0;
+}

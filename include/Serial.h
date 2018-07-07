@@ -27,4 +27,5 @@ public:
     void sendString(char* data, int length);
     void sendTarget(int, int, int);
     int receive();
+    int  buffMode();
 };

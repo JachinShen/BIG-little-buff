@@ -84,11 +84,34 @@ void aimPosCallback(const std_msgs::Int16MultiArray& msg)
     }
     int target_x = msg.data[0], target_y = msg.data[1];
     int is_found = msg.data[2];
+    static int slow_ctr=0;
     if (is_found == -1) {
         ROS_INFO("Demarcate Complete");
-        serial.sendTarget(target_x, target_y, 4);
+        //serial.sendTarget(320, 240, 3);
+        serial.sendTarget(target_x, target_y, 14);
+        serial.sendTarget(target_x, target_y, 14);
+        serial.sendTarget(target_x, target_y, 14);
+        serial.sendTarget(target_x, target_y, 14);
+        serial.sendTarget(target_x, target_y, 14);
+        serial.sendTarget(target_x, target_y, 14);
+        serial.sendTarget(target_x, target_y, 14);
+        serial.sendTarget(target_x, target_y, 14);
+        serial.sendTarget(target_x, target_y, 14);
+        serial.sendTarget(target_x, target_y, 14);
+        csm.setDemarcateComplete();
     } else {
-        serial.sendTarget(target_x, target_y, is_found);
+        serial.sendTarget(target_x, target_y, 10 + is_found);
+        //if (is_found == 4) {
+            //serial.sendTarget(320, 240, 3);
+            //serial.sendTarget(target_x, target_y, is_found);
+            //return;
+        //}
+        ////if (slow_ctr > 10) {
+            ////slow_ctr = 0;    
+            //serial.sendTarget(target_x, target_y, is_found);
+        ////} else {
+            ////++slow_ctr;
+        ////}
     }
 }
 
@@ -103,9 +126,16 @@ void csmTimerCallback(const ros::TimerEvent&)
         serial.sendString(&block_id, 1);
     } else if (block_id == 0) {
         ROS_INFO("Demarcate");
-        static std_msgs::Bool aim_ready_msg;
-        aim_ready_msg.data = true;
-        aim_ready_pub.publish(aim_ready_msg);
+        //serial.receive();
+        //if (serial.buffMode() == 1 
+                //|| serial.buffMode() == 2) {
+            ROS_INFO("Enter Buff Mode!");
+            static std_msgs::Bool aim_ready_msg;
+            aim_ready_msg.data = true;
+            aim_ready_pub.publish(aim_ready_msg);
+        //} else {
+            //ROS_INFO("Wait for STM");
+        //}
     }
     //csm.publishMnist(mnist_id_pub);
 }

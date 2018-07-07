@@ -288,3 +288,8 @@ bool ControlSM::sudokuChange()
     ROS_INFO_STREAM("Sudoku Change: " << change_cnt);
     return change_cnt >= 2;
 }
+
+void ControlSM::setDemarcateComplete()
+{
+    wait_for_demarcate = false;
+}

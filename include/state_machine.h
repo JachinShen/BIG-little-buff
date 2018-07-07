@@ -12,6 +12,7 @@ public:
     void setLed(vector<int16_t> data);
     void setSudoku(vector<int16_t> data);
     void setSudokuFound();
+    void setDemarcateComplete();
     void checkLed();
     int getLedNow();
     int getBlockIdNow();
