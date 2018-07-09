@@ -74,7 +74,7 @@ private:
     inline void pauseLedMnistFire() {led_run = mnist_run = fire_run = false;}
     inline void activateTick() {tick_run = true;}
     inline void pauseTick() {tick_run = false;}
-    inline void activateSerial() {serial_send = true;}
+    inline void activateSerial() {ROS_INFO("Activate Serial"); serial_send = true;}
     inline void resetSudokuFound() {sudoku_found = false;}
     inline void needFreshLedSudoku() {sudoku_fresh = led_fresh = false;}
 };

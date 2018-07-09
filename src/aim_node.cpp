@@ -75,11 +75,12 @@ void demarcate()
             aim_pos_msg.data.push_back(rb_aim_rect.y + rb_aim_rect.height / 2);
             break;
         }
-        if (320 - 1 <= aim_pos_msg.data[0] && aim_pos_msg.data[0] <= 320 + 1 ){
-                //&& 240-20 <= aim_pos_msg.data[1] && aim_pos_msg.data[1] <= 240 + 20) {
+        if (320 - 5 <= aim_pos_msg.data[0] && aim_pos_msg.data[0] <= 320 + 5
+                && 240-20 <= aim_pos_msg.data[1] && aim_pos_msg.data[1] <= 240 + 20) {
             target_pos = (TargetPos)((target_pos + 1));
             if (target_pos >= 3) {
                 aim_pos_msg.data.push_back(-1);
+                aim_ready_run = false;
             } else {
                 //aim_pos_msg.data.push_back(4);
                 aim_pos_msg.data.push_back(int(target_pos) + 1);

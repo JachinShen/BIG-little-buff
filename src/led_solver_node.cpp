@@ -53,6 +53,14 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
     }
 
     process();
+    //if (!led_run)
+        //return;
+    //static std_msgs::Int16MultiArray led_num_msg;
+    //led_num_msg.data.clear();
+    //for (uint i = 0; i < 5; ++i)
+        //led_num_msg.data.push_back(i+1);
+    //led_num_pub.publish(led_num_msg);
+    //led_run = false;
 }
 
 void ledRectCallback(const std_msgs::Int16MultiArray& msg)
@@ -71,6 +79,13 @@ void ledCtrCallback(const std_msgs::Bool& msg)
 {
     led_run = msg.data;
     process();
+    //if (!led_run)
+        //return;
+    //static std_msgs::Int16MultiArray led_num_msg;
+    //led_num_msg.data.clear();
+    //for (uint i = 0; i < 5; ++i)
+        //led_num_msg.data.push_back(i+1);
+    //led_num_pub.publish(led_num_msg);
 }
 
 void waitkeyTimerCallback(const ros::TimerEvent&)
