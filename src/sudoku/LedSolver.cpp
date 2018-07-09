@@ -17,6 +17,8 @@ void LedSolver::init()
         results[i] = -1;
 
     param[RED_THRESHOLD] = 128;
+    
+    
     param[GRAY_THRESHOLD] = 128;
     param[BOUND_AREA_MAX] = 30;
     param[BOUND_AREA_MAX] = 100;
@@ -55,11 +57,11 @@ void LedSolver::getRed(Mat& led_roi, Mat& led_roi_binary)
     led_roi_red = 2 * bgr_split[2] - bgr_split[1] - bgr_split[0];
     threshold(led_roi_red, led_roi_red, param[RED_THRESHOLD], 255, THRESH_BINARY);
 
-    led_roi_binary = led_roi_red & led_roi_gray;
-    //TODO: The dilated image is good for find Contour, but not for number recognization.
-    //We can extract the position and then recognize the number from the origin binary image.
-    dilate(led_roi_binary, led_roi_binary, kernel);
-    imshow("Led Red Binary: ", led_roi_binary);
+    led_roi = led_roi_red & led_roi_gray;
+
+    dilate(led_roi, led_roi_binary, kernel);
+    //imshow("original binary:", led_roi);
+    imshow("Led Red Binary dilated: ", led_roi_binary);
 }
 
 bool LedSolver::process(Mat& led_roi)
@@ -102,7 +104,7 @@ bool LedSolver::process(Mat& led_roi)
 		digits.push_back(bound);
 	}
 
-		//TODO: If the begin and end of the digits is found, we can guess the other ones.
+		
 	if (digits.size() != 5) {
 		ROS_INFO("Clear vector");
 		digits.clear(); // add for secure, otherwise munmap_chunk() error will be raised if there are too many elements in the vector (about 30)
@@ -123,7 +125,7 @@ bool LedSolver::process(Mat& led_roi)
         float hw_ratio = (float)digits[i].height / digits[i].width;
         if (hw_ratio < 1.0)
             hw_ratio = 1.0 / hw_ratio;
-        Mat roi = (led_roi_binary)(digits[i]);
+        Mat roi = (led_roi)(digits[i]);
         if (hw_ratio > param[HW_RATIO_FOR_DIGIT_ONE] / 100.0) {
 			int segment1 = scanSegmentY(roi, roi.rows / 3, 0, roi.cols);
 			int segment2 = scanSegmentY(roi, roi.rows * 2 / 3, 0, roi.cols);
@@ -150,7 +152,7 @@ bool LedSolver::process(Mat& led_roi)
         rectangle(draw, digits[i], Scalar(255, 0, 0), 2);
     }
     imshow("draw", draw);
-    imshow("Cross Led Red Binary: ", led_roi_binary);
+    imshow("Cross Led Red Binary: ", led_roi);
 #endif
 
 	if(cnt_fail_result >= 1) {on_led_change = true;}
