@@ -66,10 +66,10 @@ void fireRectCallback(const std_msgs::Int16MultiArray& msg)
     //cout << endl;
 }
 
-void tickCallback(const std_msgs::Bool& msg)
-{
-    csm.tick(msg.data);
-}
+//void tickCallback(const std_msgs::Bool& msg)
+//{
+    //csm.tick(msg.data);
+//}
 
 void sudokuRectCallback(const std_msgs::Int16MultiArray&)
 {
@@ -84,10 +84,8 @@ void aimPosCallback(const std_msgs::Int16MultiArray& msg)
     }
     int target_x = msg.data[0], target_y = msg.data[1];
     int is_found = msg.data[2];
-    static int slow_ctr=0;
     if (is_found == -1) {
         ROS_INFO("Demarcate Complete");
-        //serial.sendTarget(320, 240, 3);
         serial.sendTarget(target_x, target_y, 14);
         serial.sendTarget(target_x, target_y, 14);
         serial.sendTarget(target_x, target_y, 14);
@@ -101,17 +99,22 @@ void aimPosCallback(const std_msgs::Int16MultiArray& msg)
         csm.setDemarcateComplete();
     } else {
         serial.sendTarget(target_x, target_y, 10 + is_found);
-        //if (is_found == 4) {
-            //serial.sendTarget(320, 240, 3);
-            //serial.sendTarget(target_x, target_y, is_found);
-            //return;
-        //}
-        ////if (slow_ctr > 10) {
-            ////slow_ctr = 0;    
-            //serial.sendTarget(target_x, target_y, is_found);
-        ////} else {
-            ////++slow_ctr;
-        ////}
+    }
+}
+
+void waitkeyTimerCallback(const ros::TimerEvent&)
+{
+    char key_press = waitKey(1);
+    if (key_press == 'b') {
+        csm.transferState(ControlSM::READY);
+    } else if (key_press == 'c') {
+        ROS_INFO("Continue");
+        csm.setDemarcateComplete();
+    } else if (key_press == 'r') {
+        ROS_INFO("Reset");
+        csm.transferState(ControlSM::WAIT);
+    } else {
+        //ROS_INFO_STREAM("Press Key: " << key_press);
     }
 }
 
@@ -126,16 +129,17 @@ void csmTimerCallback(const ros::TimerEvent&)
         serial.sendString(&block_id, 1);
     } else if (block_id == 0) {
         ROS_INFO("Demarcate");
-        //serial.receive();
-        //if (serial.buffMode() == 1 
-                //|| serial.buffMode() == 2) {
+        serial.receive();
+        if (serial.buffMode() == 1 
+                || serial.buffMode() == 2) {
             ROS_INFO("Enter Buff Mode!");
+            csm.transferState(ControlSM::READY);
             static std_msgs::Bool aim_ready_msg;
             aim_ready_msg.data = true;
             aim_ready_pub.publish(aim_ready_msg);
-        //} else {
+        } else {
             //ROS_INFO("Wait for STM");
-        //}
+        }
     }
     //csm.publishMnist(mnist_id_pub);
 }
@@ -145,6 +149,7 @@ int main(int argc, char* argv[])
     ros::init(argc, argv, "control");
     ros::NodeHandle nh;
     ros::Timer csm_timer = nh.createTimer(ros::Duration(0.01), csmTimerCallback);
+    ros::Timer waitkey_timer = nh.createTimer(ros::Duration(0.1), waitkeyTimerCallback);
 
     ROS_INFO("Control Start!");
     ros::Subscriber led_num_sub
@@ -155,8 +160,8 @@ int main(int argc, char* argv[])
         = nh.subscribe("buff/fire_num", 1, fireNumCallback);
     ros::Subscriber fire_rect_sub
         = nh.subscribe("buff/fire_rect", 1, fireRectCallback);
-    ros::Subscriber tick_sub
-        = nh.subscribe("buff/tick", 1, tickCallback);
+    //ros::Subscriber tick_sub
+        //= nh.subscribe("buff/tick", 1, tickCallback);
     ros::Subscriber sudoku_rect_sub
         = nh.subscribe("buff/sudoku_rect", 1, sudokuRectCallback);
     ros::Subscriber aim_pos_sub
@@ -181,6 +186,7 @@ int main(int argc, char* argv[])
         serial.init(argv[1]);
     }
     csm.init();
+    cv::namedWindow("control");
     ros::spin();
 
     return 0;

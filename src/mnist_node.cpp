@@ -105,7 +105,7 @@ void mnistParamCallback(const std_msgs::Int16MultiArray& msg)
 void mnistCtrCallback(const std_msgs::Bool& msg)
 {
     mnist_run = msg.data;
-    process();
+    //process();
 }
 
 void mnistIdCallback(const std_msgs::Int16MultiArray& msg)

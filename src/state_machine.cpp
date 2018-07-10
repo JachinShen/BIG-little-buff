@@ -54,13 +54,13 @@ void ControlSM::run()
 {
     //static int ready_state_ctr = 0;
     if (state == WAIT) {
-        if (sudoku_found) {
-            transferState(READY);
-        }
-    } else if (state == READY) {
-        //if (wait_for_demarcate) {
-            //return;
+        //if (sudoku_found) {
+            //transferState(READY);
         //}
+    } else if (state == READY) {
+        if (wait_for_demarcate) {
+            return;
+        }
         //++ready_state_ctr;
         if (led[0] != -1) {
             //ROS_INFO_STREAM("Ready Sudoku Confirm: " << sudoku_confirm[led[0]]);
@@ -68,6 +68,7 @@ void ControlSM::run()
             //if (sudoku[led[0]] != -1 && sudoku_confirm[led[0]] > 50) {
                 //ready_state_ctr = 0;
                 memcpy(sudoku_last, sudoku, sizeof(sudoku));
+                falling_edge = false;
                 transferState(LED_ONE);
             }
         }
@@ -288,12 +289,14 @@ bool ControlSM::sudokuChange()
 {
     int change_cnt = 0;
     for (int i = 0; i < 10; ++i) {
+        if (sudoku_confirm[i] < 50) 
+            continue;
         if (sudoku[i] != sudoku_last[i]) {
             ++change_cnt;
         }
     }
     ROS_INFO_STREAM("Sudoku Change: " << change_cnt);
-    return change_cnt >= 2;
+    return change_cnt >= 5;
 }
 
 void ControlSM::setDemarcateComplete()

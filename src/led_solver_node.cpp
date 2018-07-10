@@ -31,6 +31,9 @@ void process()
         for (uint i = 0; i < 5; ++i)
             led_num_msg.data.push_back(led_solver.getResult(i));
         led_num_pub.publish(led_num_msg);
+        if (led_solver.confirmLed()) {
+            led_run = false;
+        }
     } else {
         led_num_msg.data.clear();
         for (uint i = 0; i < 5; ++i)
@@ -38,9 +41,6 @@ void process()
         led_num_pub.publish(led_num_msg);
     }
 
-    if (led_solver.confirmLed()) {
-        led_run = false;
-    }
 }
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
@@ -79,7 +79,7 @@ void ledParamCallback(const std_msgs::Int16MultiArray& msg)
 void ledCtrCallback(const std_msgs::Bool& msg)
 {
     led_run = msg.data;
-    process();
+    //process();
     //if (!led_run)
         //return;
     //static std_msgs::Int16MultiArray led_num_msg;

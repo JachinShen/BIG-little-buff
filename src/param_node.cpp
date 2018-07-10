@@ -47,10 +47,10 @@ int sudokuParamMax(int index)
 static int LED_PARAM[LedSolver::PARAM_SIZE] = {
     50,
     80,
-    1000,
+    400,
     2000,
     130,
-    1000,
+    1400,
     250,
     5
 };

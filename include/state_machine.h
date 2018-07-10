@@ -2,8 +2,24 @@
 
 class ControlSM {
 public:
+    enum State {
+        WAIT,
+        READY,
+        LED_ONE,
+        ONE_TWO,
+        LED_TWO,
+        TWO_THREE,
+        LED_THREE,
+        THREE_FOUR,
+        LED_FOUR,
+        FOUR_FIVE,
+        LED_FIVE,
+        STATE_SIZE
+    } state;
+
     ControlSM();
     ~ControlSM();
+    void transferState(State s);
     void init();
     void run();
     void tick(bool msg_data);
@@ -20,21 +36,6 @@ public:
     //bool serial_send;
 
 private:
-    enum State {
-        WAIT,
-        READY,
-        LED_ONE,
-        ONE_TWO,
-        LED_TWO,
-        TWO_THREE,
-        LED_THREE,
-        THREE_FOUR,
-        LED_FOUR,
-        FOUR_FIVE,
-        LED_FIVE,
-        STATE_SIZE
-    } state;
-
     string state_to_str[STATE_SIZE];
 
     //bool on_change;
@@ -63,7 +64,6 @@ private:
     bool serial_send;
     bool wait_for_demarcate;
 
-    void transferState(State s);
     void transferNext();
     bool sudokuChange();
     void freshCtr();

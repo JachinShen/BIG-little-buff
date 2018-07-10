@@ -162,19 +162,51 @@ void Serial::sendTarget(int target_x, int target_y, int is_found)
 
 int Serial::buffMode()
 {
-    cout << "Receive: " << hex << (int)receive_buf[0]
-        << (int)receive_buf[1] << (int)receive_buf[2] << (int)receive_buf[3] << endl;
-    if ((int)receive_buf[0] == 0xff 
-            && (int)receive_buf[1] == 0x01
-            && (int)receive_buf[2] == 0x00
-            && (int)receive_buf[3] == 0xfe) {
-        return 1;
+    static int stm_state = 0;
+    bool is_buff_mode = false;
+    for (int i=0; i<20 && receive_buf[i] != '\0'; ++i) {
+        switch(stm_state) {
+            case 0: if ((int)receive_buf[i] == 0xff) {
+                        stm_state = 1;
+                    }
+                    break;
+            case 1: if ((int)receive_buf[i] == 0x01
+                            || (int) receive_buf[i] == 0x02) {
+                        is_buff_mode = true;
+                        stm_state = 2;
+                    }
+                    break;
+            case 2: if ((int)receive_buf[i] == 0x00) {
+                        stm_state = 3;
+                    }
+                    break;
+            case 3: if ((int)receive_buf[i] == 0xfe) {
+                        stm_state = 4;
+                    }
+                    break;
+            case 4: if (is_buff_mode) {
+                        return 1;
+                    } else {
+                        return 0;
+                    }
+                    break;
+            default: break;
+        }
+
     }
-    if ((int)receive_buf[0] == 0xff 
-            && (int)receive_buf[1] == 0x02
-            && (int)receive_buf[2] == 0x00
-            && (int)receive_buf[3] == 0xfe) {
-        return 2;
-    }
-    return 0;
+    //cout << "Receive: " << hex << (int)receive_buf[0]
+        //<< (int)receive_buf[1] << (int)receive_buf[2] << (int)receive_buf[3] << endl;
+    //if ((int)receive_buf[0] == 0xff 
+            //&& (int)receive_buf[1] == 0x01
+            //&& (int)receive_buf[2] == 0x00
+            //&& (int)receive_buf[3] == 0xfe) {
+        //return 1;
+    //}
+    //if ((int)receive_buf[0] == 0xff 
+            //&& (int)receive_buf[1] == 0x02
+            //&& (int)receive_buf[2] == 0x00
+            //&& (int)receive_buf[3] == 0xfe) {
+        //return 2;
+    //}
+    //return 0;
 }
