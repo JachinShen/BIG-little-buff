@@ -13,7 +13,7 @@ void sudokuParamCallback(const std_msgs::Int16MultiArray& msg)
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
-    ROS_INFO("Sudoku Image Call");
+    //ROS_INFO("Sudoku Image Call");
     if (!sudoku_run) {
         ROS_INFO("Ignore Sudoku!");
         return;
@@ -34,7 +34,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
         return;
 
     if (block_split.process(gray, led_rect, sudoku_rect)) {
-        ROS_INFO_STREAM("Led Rect: " << led_rect);
+        //ROS_INFO_STREAM("Led Rect: " << led_rect);
         std_msgs::Int16MultiArray led_rect_msg;
         led_rect_msg.data.push_back(led_rect.x);
         led_rect_msg.data.push_back(led_rect.y);
@@ -42,7 +42,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
         led_rect_msg.data.push_back(led_rect.height);
         led_rect_pub.publish(led_rect_msg);
 
-        ROS_INFO_STREAM("Sudoku Rect: " << sudoku_rect);
+        //ROS_INFO_STREAM("Sudoku Rect: " << sudoku_rect);
         std_msgs::Int16MultiArray sudoku_rect_msg;
         sudoku_rect_msg.data.push_back(sudoku_rect.x);
         sudoku_rect_msg.data.push_back(sudoku_rect.y);

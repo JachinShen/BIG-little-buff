@@ -45,7 +45,7 @@ void process()
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
-    ROS_INFO("Led Solver Image Call Back");
+    //ROS_INFO("Led Solver Image Call Back");
     try {
         cv_ptr = cv_bridge::toCvShare(msg, sensor_msgs::image_encodings::BGR8);
     } catch (cv_bridge::Exception& e) {

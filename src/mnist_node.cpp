@@ -71,9 +71,9 @@ void process() {
     imshow("Mnist", img_roi);
 #endif
 
-    if (mnist_classifier.confirm()) {
-        mnist_run = false;
-    }
+    //if (mnist_classifier.confirm()) {
+        //mnist_run = false;
+    //}
 
 }
 

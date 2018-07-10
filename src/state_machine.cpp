@@ -52,7 +52,7 @@ void ControlSM::init()
 
 void ControlSM::run()
 {
-    static int ready_state_ctr = 0;
+    //static int ready_state_ctr = 0;
     if (state == WAIT) {
         if (sudoku_found) {
             transferState(READY);
@@ -66,7 +66,8 @@ void ControlSM::run()
             //ROS_INFO_STREAM("Ready Sudoku Confirm: " << sudoku_confirm[led[0]]);
             if (sudoku[led[0]] != -1 ) {
             //if (sudoku[led[0]] != -1 && sudoku_confirm[led[0]] > 50) {
-                ready_state_ctr = 0;
+                //ready_state_ctr = 0;
+                memcpy(sudoku_last, sudoku, sizeof(sudoku));
                 transferState(LED_ONE);
             }
         }
@@ -128,11 +129,13 @@ void ControlSM::setSudoku(vector<int16_t> data)
         return;
     for (uint i = 0; i < 10; ++i) {
         sudoku[i] = data[i];
-    }
-    for (uint i = 0; i < 10; ++i) {
         sudoku_confirm[i] = data[i + 10];
     }
     sudoku_fresh = true;
+    if (sudokuChange()) {
+        ROS_INFO("Falling Edge");
+        falling_edge = true;
+    }
 }
 
 void ControlSM::setSudokuFound()
@@ -244,8 +247,9 @@ void ControlSM::freshCtr()
             || state == LED_FIVE) {
         mnist_id_publish = true;
         activateSerial();
+        activateLedMnistFire();
         pauseSudoku();
-        pauseLedMnistFire();
+        //pauseLedMnistFire();
     } else if (state == ONE_TWO || state == TWO_THREE
             || state == THREE_FOUR || state == FOUR_FIVE) {
         needFreshLedSudoku();
