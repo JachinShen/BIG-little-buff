@@ -54,9 +54,10 @@ int main(int argc, char** argv)
                 gray_msg = cv_bridge::CvImage(std_msgs::Header(), "mono8", gray).toImageMsg();
                 pub.publish(msg);
                 gray_pub.publish(gray_msg);
+                ROS_INFO("Publish");
 
                 imshow("src", frame);
-                waitKey(1);
+                waitKey(0);
             }
         }
     }

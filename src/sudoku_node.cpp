@@ -13,6 +13,7 @@ void sudokuParamCallback(const std_msgs::Int16MultiArray& msg)
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
+    ROS_INFO("Sudoku Image Call");
     if (!sudoku_run) {
         ROS_INFO("Ignore Sudoku!");
         return;

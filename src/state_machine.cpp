@@ -58,9 +58,9 @@ void ControlSM::run()
             transferState(READY);
         }
     } else if (state == READY) {
-        if (wait_for_demarcate) {
-            return;
-        }
+        //if (wait_for_demarcate) {
+            //return;
+        //}
         //++ready_state_ctr;
         if (led[0] != -1) {
             //ROS_INFO_STREAM("Ready Sudoku Confirm: " << sudoku_confirm[led[0]]);
