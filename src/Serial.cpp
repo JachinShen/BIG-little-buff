@@ -194,7 +194,8 @@ int Serial::buffMode()
         }
 
     }
-    //cout << "Receive: " << hex << (int)receive_buf[0]
+    return 0;
+    cout << "Receive: " << hex << (int)receive_buf[0] << endl;
         //<< (int)receive_buf[1] << (int)receive_buf[2] << (int)receive_buf[3] << endl;
     //if ((int)receive_buf[0] == 0xff 
             //&& (int)receive_buf[1] == 0x01

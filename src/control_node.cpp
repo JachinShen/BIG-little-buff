@@ -123,25 +123,26 @@ void csmTimerCallback(const ros::TimerEvent&)
     csm.run();
     csm.publishSudokuLedMnistFire(sudoku_ctr_pub, led_ctr_pub, mnist_ctr_pub, fire_ctr_pub);
     char block_id;
+    serial.receive();
+    if (serial.buffMode() == 1 
+            || serial.buffMode() == 2) {
+        ROS_INFO("Enter Buff Mode!");
+        csm.transferState(ControlSM::READY);
+    }
     block_id = csm.sendBlockID();
     if (block_id > 0) {
         ROS_INFO_STREAM("Send Block Id: " << (int)block_id);
         serial.sendString(&block_id, 1);
     } else if (block_id == 0) {
         ROS_INFO("Demarcate");
-        serial.receive();
-        if (serial.buffMode() == 1 
-                || serial.buffMode() == 2) {
-            ROS_INFO("Enter Buff Mode!");
-            csm.transferState(ControlSM::READY);
-            static std_msgs::Bool aim_ready_msg;
-            aim_ready_msg.data = true;
-            aim_ready_pub.publish(aim_ready_msg);
-        } else {
-            //ROS_INFO("Wait for STM");
-        }
+        static std_msgs::Bool aim_ready_msg;
+        aim_ready_msg.data = true;
+        aim_ready_pub.publish(aim_ready_msg);
+        //} else {
+        ////ROS_INFO("Wait for STM");
+        //}
     }
-    //csm.publishMnist(mnist_id_pub);
+//csm.publishMnist(mnist_id_pub);
 }
 
 int main(int argc, char* argv[])
@@ -161,7 +162,7 @@ int main(int argc, char* argv[])
     ros::Subscriber fire_rect_sub
         = nh.subscribe("buff/fire_rect", 1, fireRectCallback);
     //ros::Subscriber tick_sub
-        //= nh.subscribe("buff/tick", 1, tickCallback);
+    //= nh.subscribe("buff/tick", 1, tickCallback);
     ros::Subscriber sudoku_rect_sub
         = nh.subscribe("buff/sudoku_rect", 1, sudokuRectCallback);
     ros::Subscriber aim_pos_sub

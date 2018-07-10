@@ -57,9 +57,11 @@ void LedSolver::getRed(Mat& led_roi, Mat& led_roi_binary)
     led_roi_red = 2 * bgr_split[2] - bgr_split[1] - bgr_split[0];
     threshold(led_roi_red, led_roi_red, param[RED_THRESHOLD], 255, THRESH_BINARY);
 
-    led_roi = led_roi_red & led_roi_gray;
+    //led_roi = led_roi_red & led_roi_gray;
+    led_roi = led_roi_gray;
+    led_roi_binary = led_roi_gray;
 
-    dilate(led_roi, led_roi_binary, kernel);
+    //dilate(led_roi, led_roi_binary, kernel);
     //imshow("original binary:", led_roi);
     imshow("Led Red Binary dilated: ", led_roi_binary);
 }
