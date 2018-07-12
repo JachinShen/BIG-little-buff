@@ -37,7 +37,7 @@ void process()
     } else {
         led_num_msg.data.clear();
         for (uint i = 0; i < 5; ++i)
-            led_num_msg.data.push_back(-1);
+            led_num_msg.data.push_back(led_solver.getResult(i));
         led_num_pub.publish(led_num_msg);
     }
 

@@ -66,3 +66,4 @@ using std::string;
 using std::vector;
 
 bool compareRect(const Rect& r1, const Rect& r2);
+bool compareRectX(const Rect& r1, const Rect& r2);

@@ -68,15 +68,16 @@ void demarcate()
             break;
         case CENTER:
             aim_pos_msg.data.push_back(center_aim_rect.x + center_aim_rect.width / 2);
-            aim_pos_msg.data.push_back(center_aim_rect.y + center_aim_rect.height / 2);
+            aim_pos_msg.data.push_back(center_aim_rect.y + center_aim_rect.height / 2 - 10);
             break;
         case RIGHT_BOTTOM:
             aim_pos_msg.data.push_back(rb_aim_rect.x + rb_aim_rect.width / 2);
             aim_pos_msg.data.push_back(rb_aim_rect.y + rb_aim_rect.height / 2);
             break;
         }
+        aim_pos_msg.data[1] -= 60;
         if (320 - 5 <= aim_pos_msg.data[0] && aim_pos_msg.data[0] <= 320 + 5
-                && 240-20 <= aim_pos_msg.data[1] && aim_pos_msg.data[1] <= 240 + 20) {
+                && 240-10 <= aim_pos_msg.data[1] && aim_pos_msg.data[1] <= 240 + 10) {
             target_pos = (TargetPos)((target_pos + 1));
             if (target_pos >= 3) {
                 aim_pos_msg.data.push_back(-1);

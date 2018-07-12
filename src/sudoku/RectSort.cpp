@@ -8,3 +8,7 @@ bool compareRect(const Rect& r1, const Rect& r2)
     return r1.x < r2.x;
 }
 
+bool compareRectX(const Rect& r1, const Rect& r2)
+{
+    return r1.x < r2.x;
+}

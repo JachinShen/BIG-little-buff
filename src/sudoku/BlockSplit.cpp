@@ -55,17 +55,17 @@ bool BlockSplit::processMnist(Mat& input, Rect& led_rect,
         float hw_ratio = (float)bound.height / bound.width;
         //if (hw_ratio < 1.0)
             //hw_ratio = 1.0 / hw_ratio;
-        cout << "HW ratio: " << hw_ratio << endl;
+        //cout << "HW ratio: " << hw_ratio << endl;
         if (hw_ratio < (float)param[HW_RATIO_MIN] / 100 || hw_ratio > (float)param[HW_RATIO_MAX] / 100)
             continue;
 
         float area = contourArea(contours[i]);
-        cout << "Area ratio: " << area/bound.area() << endl;
+        //cout << "Area ratio: " << area/bound.area() << endl;
         if (area / bound.area() < (float)param[AREA_RATIO] / 100)
             continue;
         //cout << "Area: " << bound.area() << endl;
         blocks.push_back(bound);
-        ROS_INFO("Mnist push back");
+        //ROS_INFO("Mnist push back");
     }
 
     //sort(blocks.begin(), blocks.end(), compareRect);
@@ -87,6 +87,8 @@ bool BlockSplit::processMnist(Mat& input, Rect& led_rect,
         top_left_y = input.rows,
         buttom_right_x = 0,
         buttom_right_y = 0;
+    int width_sum = 0,
+        height_sum = 0;
 
     for (uint i=0; i<blocks.size(); ++i) {
         if (blocks[i].x < top_left_x)
@@ -97,18 +99,23 @@ bool BlockSplit::processMnist(Mat& input, Rect& led_rect,
             buttom_right_x = blocks[i].x;
         if (blocks[i].y > buttom_right_y)
             buttom_right_y = blocks[i].y;
+        width_sum += blocks[i].width;
+        height_sum += blocks[i].height;
     }
+
+    int width_avg = width_sum / blocks.size();
+    int height_avg = height_sum / blocks.size();
 
     int whole_block_x = top_left_x - 10;
     int whole_block_y = top_left_y;
-    int whole_block_width = buttom_right_x - whole_block_x + blocks[0].width;
-    int whole_block_height = buttom_right_y - top_left_y + blocks[0].height;
+    int whole_block_width = buttom_right_x - whole_block_x + width_avg;
+    int whole_block_height = buttom_right_y - top_left_y + height_avg;
     //led_rect = Rect(top_x, 0, top_width, top_y);
     //copy(blocks.begin(), blocks.end(), back_inserter(handwrite_rects));
-    sudoku_rect = Rect(whole_block_x + 10, whole_block_y,
-            whole_block_width - 20, whole_block_height);
+    sudoku_rect = Rect(whole_block_x, whole_block_y,
+            whole_block_width, whole_block_height);
     led_rect = Rect(whole_block_x, 0, 
-            whole_block_width, whole_block_y);
+            whole_block_width, whole_block_y - 20);
 
     return true;
 }

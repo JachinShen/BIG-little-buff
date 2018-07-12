@@ -30,7 +30,7 @@ void process() {
     img_roi = img(sudoku_rect);
     //cvtColor(img_roi, gray, CV_BGR2GRAY);
     gray = img_roi;
-    threshold(gray, binary, 128, 255, CV_THRESH_BINARY);
+    threshold(gray, binary, 100, 255, CV_THRESH_BINARY);
 
     findContours(binary.clone(), contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
     mnist_rect.clear();
@@ -39,7 +39,23 @@ void process() {
         if (bound.area() < 500)
             continue;
         mnist_rect.push_back(bound);
+        if (mnist_rect.size() == 9) {
+            break;
+        }
     }
+    //if (mnist_rect.size() != 9) {
+        //ROS_INFO("Mnist Wrong Size");
+        //static std_msgs::Int16MultiArray mnist_num_msg;
+        //mnist_num_msg.data.clear();
+        //for (uint i = 0; i < 10; ++i) {
+            //mnist_num_msg.data.push_back(mnist_classifier.getNumberBlockID(i));
+        //}
+        //for (uint i = 0; i < 10; ++i) {
+            //mnist_num_msg.data.push_back(mnist_classifier.confirmNumber(i));
+        //}
+        //mnist_num_pub.publish(mnist_num_msg);
+        //return;
+    //}
 
     sort(mnist_rect.begin(), mnist_rect.end(), compareRect);
     mnist_roi.clear();

@@ -289,14 +289,14 @@ bool ControlSM::sudokuChange()
 {
     int change_cnt = 0;
     for (int i = 0; i < 10; ++i) {
-        if (sudoku_confirm[i] < 50) 
+        if (sudoku_confirm[i] < 90) 
             continue;
         if (sudoku[i] != sudoku_last[i]) {
             ++change_cnt;
         }
     }
     ROS_INFO_STREAM("Sudoku Change: " << change_cnt);
-    return change_cnt >= 5;
+    return change_cnt >= 3;
 }
 
 void ControlSM::setDemarcateComplete()

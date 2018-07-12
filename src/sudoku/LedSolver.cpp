@@ -10,7 +10,7 @@ void LedSolver::init()
 {
     //svm    = SVM::create();
     //svm    = svm->load(file);
-    kernel = getStructuringElement(MORPH_RECT, Size(2, 2));
+    kernel = getStructuringElement(MORPH_RECT, Size(3, 3));
     //hog    = new cv::HOGDescriptor(cvSize(28, 28), cvSize(14, 14), cvSize(7, 7), cvSize(7, 7), 9);
 
     for (int i = 0; i < 5; ++i)
@@ -61,7 +61,9 @@ void LedSolver::getRed(Mat& led_roi, Mat& led_roi_binary)
     led_roi = led_roi_gray;
     led_roi_binary = led_roi_gray;
 
+    //erode(led_roi, led_roi_binary, kernel);
     //dilate(led_roi, led_roi_binary, kernel);
+    dilate(led_roi, led_roi_binary, kernel);
     //imshow("original binary:", led_roi);
     imshow("Led Red Binary dilated: ", led_roi_binary);
 }
@@ -114,7 +116,7 @@ bool LedSolver::process(Mat& led_roi)
 		return false;
 	}
 
-    sort(digits.begin(), digits.end(), compareRect);
+    sort(digits.begin(), digits.end(), compareRectX);
 	
 	
 	
@@ -127,7 +129,7 @@ bool LedSolver::process(Mat& led_roi)
         float hw_ratio = (float)digits[i].height / digits[i].width;
         if (hw_ratio < 1.0)
             hw_ratio = 1.0 / hw_ratio;
-        Mat roi = (led_roi)(digits[i]);
+        Mat roi = (led_roi_binary)(digits[i]);
         if (hw_ratio > param[HW_RATIO_FOR_DIGIT_ONE] / 100.0) {
 			int segment1 = scanSegmentY(roi, roi.rows / 3, 0, roi.cols);
 			int segment2 = scanSegmentY(roi, roi.rows * 2 / 3, 0, roi.cols);
@@ -169,7 +171,7 @@ int LedSolver::scanSegmentX(Mat& roi, int line_x, int y_begin, int y_end)
     for (int i = y_begin; i < y_end; ++i) {
         uchar* pixel = roi.ptr<uchar>(i) + line_x;
         if (*pixel == 255) {
-            *pixel = 128;
+            //*pixel = 128;
             ++hit_ctr;
         }
     }
@@ -182,7 +184,7 @@ int LedSolver::scanSegmentY(Mat& roi, int line_y, int x_begin, int x_end)
     int hit_ctr = 0;
     for (int i = x_begin; i < x_end; ++i, ++pixel) {
         if (*pixel == 255) {
-            *pixel = 128;
+            //*pixel = 128;
             ++hit_ctr;
         }
     }
@@ -198,7 +200,7 @@ int LedSolver::predictCross(Mat& roi)
 #define SEGMENT_E 0x10
 #define SEGMENT_F 0x20
 #define SEGMENT_G 0x40
-#define SEGMENT_THRES 1
+#define SEGMENT_THRES 0
 
     int mid_x = roi.cols / 2;
     int one_sixth_x = roi.cols / 6;
