@@ -130,10 +130,11 @@ void csmTimerCallback(const ros::TimerEvent&)
             csm.transferState(ControlSM::READY);
         }
     }
-    char block_id = csm.sendBlockID();
+    int block_id = csm.sendBlockID();
     if (block_id > 0) {
-        ROS_INFO_STREAM("Send Block Id: " << (int)block_id);
-        serial.sendString(&block_id, 1);
+        ROS_INFO_STREAM("Send Block Id: " << block_id);
+        char block_ch = (char) block_id;
+        serial.sendString(&block_ch, 1);
     } else if (block_id == 0) {
         ROS_INFO("Demarcate");
         static std_msgs::Bool aim_ready_msg;

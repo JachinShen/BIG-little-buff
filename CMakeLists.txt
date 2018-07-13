@@ -231,10 +231,17 @@ find_package(OpenCV REQUIRED)
 #)
 add_executable(image_publish_node
     ./src/image_publish_node.cpp
+    ./src/sudoku/BlockSplit.cpp
+    ./src/sudoku/LedSolver.cpp
+    ./src/sudoku/DnnClassifier.cpp
+    ./src/sudoku/caffe_prototype.cpp
+    ./src/sudoku/RectSort.cpp
     )
 target_link_libraries(image_publish_node
     ${catkin_LIBRARIES}
     ${OpenCV_LIBS}
+    -lcaffe
+    glog
     )
 add_executable(sudoku_node 
     ./src/sudoku_node.cpp

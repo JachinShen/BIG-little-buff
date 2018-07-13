@@ -34,6 +34,7 @@ int GlobalCamera::init()
     iStatus = -1;
     iplImage = NULL;
     channel = 3;
+    g_pRgbBuffer = NULL;
 
     CameraSdkInit(1);
 
