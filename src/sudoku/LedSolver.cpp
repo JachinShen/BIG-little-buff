@@ -18,7 +18,6 @@ void LedSolver::init()
 
     param[RED_THRESHOLD] = 128;
 
-
     param[GRAY_THRESHOLD] = 128;
     param[BOUND_AREA_MAX] = 30;
     param[BOUND_AREA_MAX] = 100;
@@ -81,71 +80,68 @@ bool LedSolver::process(Mat& led_roi, Rect& bound_all_rect)
     draw = led_roi.clone();
 #endif
 
-	getRed(led_roi, led_roi_binary);
+    getRed(led_roi, led_roi_binary);
     findContours(led_roi_binary, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
-	digits.clear();
-	for (uint i = 0; i < contours.size(); ++i) {
-		Rect bound = boundingRect(contours[i]);
-		//if (bound.x < 10 || bound.x + bound.width > led_roi.cols - 10
-				//|| bound.y < 10 || bound.y + bound.height > led_roi.rows)
-			//continue;
-		if (bound.area() < param[BOUND_AREA_MIN] || bound.area() > param[BOUND_AREA_MAX])
-		    continue;
-		float hw_ratio = (float)bound.height / bound.width;
-		if (hw_ratio < 1.0)
-		    continue;
-		    //hw_ratio = 1.0 / hw_ratio;
-		    //cout << "HW ratio: " << hw_ratio << endl;
-		if (hw_ratio < param[HW_RATIO_MIN] / 100.0 || hw_ratio > param[HW_RATIO_MAX] / 100.0)
-		    continue;
-		digits.push_back(bound);
-	}
-
-	sort(digits.begin(), digits.end(), compareRect);
-       
-	if (digits.size() < 5) {
-	        int curSize = digits.size();
-		for(int i = 0; i < curSize-1 && digits.size() < 5; i++)
-		{
-		        
-			if(digits[i].x + digits[i].width*2 >= digits[i+1].x )
-			{
-			        continue;
-			}
-				
-			else
-			{
-			        int newx = (digits[i+1].x+digits[i].x)/2, newy = (digits[i].y+digits[i+1].y)/2, 
-			                newwidth = max(digits[i].width,digits[i+1].width), newheight = max(digits[i].height,digits[i+1].height);
-			        if ((float)digits[i].height / digits[i].width > param[HW_RATIO_FOR_DIGIT_ONE] / 100.0)
-			        {
-			                newx =  (digits[i+1].x+digits[i].x)/2 + digits[i].width - digits[i+1].width;
-			                newx = (digits[i].x + digits[i].width + digits[i+1].x + digits[i+1].width)/2 - digits[i+1].width;
-			        }
-			        if((float)digits[i+1].height / digits[i+1].width > param[HW_RATIO_FOR_DIGIT_ONE] / 100.0){
-			                newx = (digits[i].x + digits[i+1].x)/2;
-			        }
-				Rect bound = Rect( newx, newy, newwidth, newheight);
-				digits.push_back(bound);
-			}
-		}
+    digits.clear();
+    for (uint i = 0; i < contours.size(); ++i) {
+        Rect bound = boundingRect(contours[i]);
+        //if (bound.x < 10 || bound.x + bound.width > led_roi.cols - 10
+        //|| bound.y < 10 || bound.y + bound.height > led_roi.rows)
+        //continue;
+        if (bound.area() < param[BOUND_AREA_MIN] || bound.area() > param[BOUND_AREA_MAX])
+            continue;
+        ROS_INFO_STREAM("Led Area: " << bound.area());
+        float hw_ratio = (float)bound.height / bound.width;
+        if (hw_ratio < 1.0)
+            continue;
+        //hw_ratio = 1.0 / hw_ratio;
+        //cout << "HW ratio: " << hw_ratio << endl;
+        ROS_INFO_STREAM("HW ration: " << hw_ratio);
+        if (hw_ratio < param[HW_RATIO_MIN] / 100.0 || hw_ratio > param[HW_RATIO_MAX] / 100.0)
+            continue;
+        digits.push_back(bound);
     }
-			
-	if (digits.size() != 5) {
-		ROS_INFO("Clear vector");
-		digits.clear(); // add for secure, otherwise munmap_chunk() error will be raised if there are too many elements in the vector (about 30)
-		return false;
-	}
+
+    sort(digits.begin(), digits.end(), compareRectX);
+
+    if (digits.size() < 5) {
+        int curSize = digits.size();
+        for (int i = 0; i < curSize - 1 && digits.size() < 5; i++) {
+            if (digits[i].x + digits[i].width * 2 >= digits[i + 1].x) {
+                continue;
+            } else {
+                int newx = (digits[i + 1].x + digits[i].x) / 2, newy = (digits[i].y + digits[i + 1].y) / 2,
+                    newwidth = max(digits[i].width, digits[i + 1].width), newheight = max(digits[i].height, digits[i + 1].height);
+                if ((float)digits[i].height / digits[i].width > param[HW_RATIO_FOR_DIGIT_ONE] / 100.0) {
+                    newx = (digits[i + 1].x + digits[i].x) / 2 + digits[i].width - digits[i + 1].width;
+                    newx = (digits[i].x + digits[i].width + digits[i + 1].x + digits[i + 1].width) / 2 - digits[i + 1].width;
+                }
+                if ((float)digits[i + 1].height / digits[i + 1].width > param[HW_RATIO_FOR_DIGIT_ONE] / 100.0) {
+                    newx = (digits[i].x + digits[i + 1].x) / 2;
+                }
+                Rect bound = Rect(newx, newy, newwidth, newheight);
+                digits.push_back(bound);
+            }
+        }
+    }
+
+    if (digits.size() != 5) {
+        ROS_INFO("Clear vector");
+        digits.clear(); // add for secure, otherwise munmap_chunk() error will be raised if there are too many elements in the vector (about 30)
+        return false;
+    }
     for (uint i = 0; i < digits.size(); ++i) {
         float hw_ratio = (float)digits[i].height / digits[i].width;
         if (hw_ratio < 1.0)
             hw_ratio = 1.0 / hw_ratio;
         Mat roi = (led_roi_binary)(digits[i]);
         if (hw_ratio > param[HW_RATIO_FOR_DIGIT_ONE] / 100.0) {
-			int segment1 = scanSegmentY(roi, roi.rows / 3, 0, roi.cols);
-			int segment2 = scanSegmentY(roi, roi.rows * 2 / 3, 0, roi.cols);
-			if(segment1 > 1 && segment2 > 1) results[i] = 1;
-			else results[i] = -1;
+            int segment1 = scanSegmentY(roi, roi.rows / 3, 0, roi.cols);
+            int segment2 = scanSegmentY(roi, roi.rows * 2 / 3, 0, roi.cols);
+            if (segment1 > 1 && segment2 > 1)
+                results[i] = 1;
+            else
+                results[i] = -1;
             continue;
         }
 
@@ -156,7 +152,7 @@ bool LedSolver::process(Mat& led_roi, Rect& bound_all_rect)
     }
 
     bound_all_rect = Rect(digits[0].tl() - Point(10, 10),
-            digits[4].br() + Point(10, 10));
+        digits[4].br() + Point(10, 10));
 
 #if DRAW == SHOW_ALL
     for (uint i = 0; i < digits.size(); ++i) {
