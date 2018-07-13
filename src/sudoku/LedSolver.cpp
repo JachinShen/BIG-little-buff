@@ -105,20 +105,21 @@ bool LedSolver::process(Mat& led_roi)
 	}
 
 	sort(digits.begin(), digits.end(), compareRect);
-       
-	if (digits.size() < 5) {
-	        int curSize = digits.size();
+
+	if (digits.size() < 5 && !digits.empty()) {
+	        int curSize = digits.size(), maxwidth = digits.front().width, maxheight =digits.front().height ;
 		for(int i = 0; i < curSize-1 && digits.size() < 5; i++)
 		{
-		        
+		        maxwidth = max(maxwidth, digits[i].width);
+		        maxheight = max(maxheight, digits[i].height);
 			if(digits[i].x + digits[i].width*2 >= digits[i+1].x )
 			{
 			        continue;
 			}
-				
+
 			else
 			{
-			        int newx = (digits[i+1].x+digits[i].x)/2, newy = (digits[i].y+digits[i+1].y)/2, 
+			        int newx = (digits[i+1].x+digits[i].x)/2, newy = (digits[i].y+digits[i+1].y)/2,
 			                newwidth = max(digits[i].width,digits[i+1].width), newheight = max(digits[i].height,digits[i+1].height);
 			        if ((float)digits[i].height / digits[i].width > param[HW_RATIO_FOR_DIGIT_ONE] / 100.0)
 			        {
@@ -132,11 +133,31 @@ bool LedSolver::process(Mat& led_roi)
 				digits.push_back(bound);
 			}
 		}
-			
-		
-		
 		sort(digits.begin(), digits.end(), compareRect);
-		
+		if(digits.size() < 5 && !digits.empty()){
+		        bool left = true, right = true;
+		        while(left && digits.size() < 5){
+		                int newx = digits.front().x-maxwidth*4/3-3, newy = digits.front().y, newwidth = maxwidth+3, newheight = digits.front().height;
+		                Rect bound = Rect( newx, newy, newwidth, newheight);
+		                Mat roi = (led_roi)(bound).clone();
+		                if(predictCross(roi) == -1) left = false;
+		                if(left) digits.insert(digits.begin(), bound);
+		        }
+		        while(right && digits.size() < 5){
+		                int newx = digits.back().x+maxwidth*4/3-3, newy = digits.back().y, newwidth = maxwidth+3, newheight = digits.back().height;
+		                Rect bound = Rect( newx, newy, newwidth, newheight);
+		                Mat roi = (led_roi)(bound).clone();
+		                if(predictCross(roi) == -1) right = false;
+		                if(right) digits.push_back(bound);
+		        }
+		}
+		sort(digits.begin(), digits.end(), compareRect);
+
+		for (uint i = 0; i < digits.size(); ++i) {
+                rectangle(draw, digits[i], Scalar(0, 255, 0), 2);
+                    }
+                imshow("draw", draw);
+
 	}
 
 
