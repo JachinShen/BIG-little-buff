@@ -68,15 +68,13 @@ void LedSolver::getRed(Mat& led_roi, Mat& led_roi_binary)
     imshow("Led Red Binary dilated: ", led_roi_binary);
 }
 
-bool LedSolver::process(Mat& led_roi)
+bool LedSolver::process(Mat& led_roi, Rect& bound_all_rect)
 {
     static Mat led_roi_binary;
-	static bool on_led_change = true;
 #if DRAW == SHOW_ALL
     static Mat draw;
 #endif
     static vector<vector<Point> > contours;
-
     vector<Rect> digits;
 
 #if DRAW == SHOW_ALL
@@ -84,18 +82,14 @@ bool LedSolver::process(Mat& led_roi)
 #endif
 
 	getRed(led_roi, led_roi_binary);
-	if(on_led_change)
-	{
-		findContours(led_roi_binary, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
-	}
-	on_led_change = false;
+    findContours(led_roi_binary, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
 	
 	digits.clear();
 	for (uint i = 0; i < contours.size(); ++i) {
 		Rect bound = boundingRect(contours[i]);
-		if (bound.x < 10 || bound.x + bound.width > led_roi.cols - 10
-		        || bound.y < 10 || bound.y + bound.height > led_roi.rows)
-		    continue;
+		//if (bound.x < 10 || bound.x + bound.width > led_roi.cols - 10
+				//|| bound.y < 10 || bound.y + bound.height > led_roi.rows)
+			//continue;
 		if (bound.area() < param[BOUND_AREA_MIN] || bound.area() > param[BOUND_AREA_MAX])
 		    continue;
 		float hw_ratio = (float)bound.height / bound.width;
@@ -112,7 +106,6 @@ bool LedSolver::process(Mat& led_roi)
 	if (digits.size() != 5) {
 		ROS_INFO("Clear vector");
 		digits.clear(); // add for secure, otherwise munmap_chunk() error will be raised if there are too many elements in the vector (about 30)
-		on_led_change = true;
 		return false;
 	}
 
@@ -135,7 +128,6 @@ bool LedSolver::process(Mat& led_roi)
 			int segment2 = scanSegmentY(roi, roi.rows * 2 / 3, 0, roi.cols);
 			if(segment1 > 2 && segment2 > 2) results[i] = 1;
 			else results[i] = -1;
-			on_led_change = true;
             continue;
         }
         
@@ -144,12 +136,9 @@ bool LedSolver::process(Mat& led_roi)
         warpAffine(roi, roi, M2, roi.size(), 1, 0, 0);
         results[i] = predictCross(roi);
     }
-    uint cnt_fail_result = 0;
-	for (uint i = 0; i < 5; ++i)
-	{
-		if(results[i] == -1) cnt_fail_result++;
-	}
 
+    bound_all_rect = Rect(digits[0].tl() - Point(10, 10),
+            digits[4].br() + Point(10, 10));
 
 #if DRAW == SHOW_ALL
     for (uint i = 0; i < digits.size(); ++i) {
@@ -158,9 +147,6 @@ bool LedSolver::process(Mat& led_roi)
     imshow("draw", draw);
     imshow("Cross Led Red Binary: ", led_roi);
 #endif
-
-	if(cnt_fail_result >= 1) {on_led_change = true;}
-	
 	
     return true;
 }
@@ -170,8 +156,8 @@ int LedSolver::scanSegmentX(Mat& roi, int line_x, int y_begin, int y_end)
     int hit_ctr = 0;
     for (int i = y_begin; i < y_end; ++i) {
         uchar* pixel = roi.ptr<uchar>(i) + line_x;
-        if (*pixel == 255) {
-            //*pixel = 128;
+        if (*pixel == 255 || *pixel == 128) {
+            *pixel = 128;
             ++hit_ctr;
         }
     }
@@ -183,8 +169,8 @@ int LedSolver::scanSegmentY(Mat& roi, int line_y, int x_begin, int x_end)
     uchar* pixel = roi.ptr<uchar>(line_y) + x_begin;
     int hit_ctr = 0;
     for (int i = x_begin; i < x_end; ++i, ++pixel) {
-        if (*pixel == 255) {
-            //*pixel = 128;
+        if (*pixel == 255 || *pixel == 128) {
+            *pixel = 128;
             ++hit_ctr;
         }
     }

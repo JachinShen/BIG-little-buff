@@ -33,7 +33,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
     if (gray.empty())
         return;
 
-    if (block_split.processMnist(gray, led_rect, sudoku_rect)) {
+    if (block_split.process(gray, led_rect, sudoku_rect)) {
         //ROS_INFO_STREAM("Led Rect: " << led_rect);
         std_msgs::Int16MultiArray led_rect_msg;
         led_rect_msg.data.push_back(led_rect.x);
@@ -59,6 +59,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 void sudokuCtrCallback(const std_msgs::Bool& msg)
 {
     sudoku_run = msg.data;
+    ROS_INFO_STREAM("Get Sudoku Ctr: " << sudoku_run);
 }
 
 void waitkeyTimerCallback(const ros::TimerEvent&)
@@ -82,7 +83,7 @@ int main(int argc, char* argv[])
     ros::Subscriber sudoku_param_sub = nh.subscribe("buff/sudoku_param", 1, sudokuParamCallback);
     ros::Subscriber sudoku_ctr_sub = nh.subscribe("buff/sudoku_ctr", 1, sudokuCtrCallback);
 
-    sudoku_run = true;
+    sudoku_run = false;
     block_split.init();
     ros::spin();
 

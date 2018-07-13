@@ -11,7 +11,7 @@ public:
     ~LedSolver();
     //void init(const char* file);
     void init();
-    bool process(Mat& led_roi);
+    bool process(Mat& led_roi, Rect& bound_all_rect);
     int getResult(int index);
     void setParam(int index, int value);
     bool confirmLed();

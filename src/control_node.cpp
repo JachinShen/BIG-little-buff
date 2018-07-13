@@ -29,14 +29,14 @@ void mnistNumCallback(const std_msgs::Int16MultiArray& msg)
         return;
     }
     csm.setSudoku(msg.data);
-    ROS_INFO_STREAM("Mnist: " << msg.data[0] << msg.data[1]
-            << msg.data[2] << msg.data[3] << msg.data[4]
-            << msg.data[5] << msg.data[6] << msg.data[7]
-            << msg.data[8] << msg.data[9]);
-    ROS_INFO_STREAM("Mnist Possibility: " << msg.data[10] << " " << msg.data[11] << " "
-            << msg.data[12] << " " << msg.data[13] << " " << msg.data[14] << " "
-            << msg.data[15] << " " << msg.data[16] << " " << msg.data[17] << " "
-            << msg.data[18] << " " << msg.data[19]);
+    //ROS_INFO_STREAM("Mnist: " << msg.data[0] << msg.data[1]
+            //<< msg.data[2] << msg.data[3] << msg.data[4]
+            //<< msg.data[5] << msg.data[6] << msg.data[7]
+            //<< msg.data[8] << msg.data[9]);
+    //ROS_INFO_STREAM("Mnist Possibility: " << msg.data[10] << " " << msg.data[11] << " "
+            //<< msg.data[12] << " " << msg.data[13] << " " << msg.data[14] << " "
+            //<< msg.data[15] << " " << msg.data[16] << " " << msg.data[17] << " "
+            //<< msg.data[18] << " " << msg.data[19]);
 }
 
 void fireNumCallback(const std_msgs::Int16MultiArray& msg)
@@ -122,14 +122,15 @@ void csmTimerCallback(const ros::TimerEvent&)
 {
     csm.run();
     csm.publishSudokuLedMnistFire(sudoku_ctr_pub, led_ctr_pub, mnist_ctr_pub, fire_ctr_pub);
-    char block_id;
-    serial.receive();
-    if (serial.buffMode() == 1 
-            || serial.buffMode() == 2) {
-        ROS_INFO("Enter Buff Mode!");
-        csm.transferState(ControlSM::READY);
+    if (csm.isWait()) {
+        serial.receive();
+        if (serial.buffMode() == 1 
+                || serial.buffMode() == 2) {
+            ROS_INFO("Enter Buff Mode!");
+            csm.transferState(ControlSM::READY);
+        }
     }
-    block_id = csm.sendBlockID();
+    char block_id = csm.sendBlockID();
     if (block_id > 0) {
         ROS_INFO_STREAM("Send Block Id: " << (int)block_id);
         serial.sendString(&block_id, 1);
@@ -138,11 +139,7 @@ void csmTimerCallback(const ros::TimerEvent&)
         static std_msgs::Bool aim_ready_msg;
         aim_ready_msg.data = true;
         aim_ready_pub.publish(aim_ready_msg);
-        //} else {
-        ////ROS_INFO("Wait for STM");
-        //}
     }
-//csm.publishMnist(mnist_id_pub);
 }
 
 int main(int argc, char* argv[])
@@ -181,7 +178,7 @@ int main(int argc, char* argv[])
         = nh.advertise<std_msgs::Bool>("buff/fire_ctr", 1);
 
     if (argv[1] == NULL) {
-        ROS_ERROR("Control argv[1] == NULL");
+        ROS_ERROR("Control argv[1] == NULL Using /dev/ttyUSB0");
         serial.init("/dev/ttyUSB0");
     } else {
         serial.init(argv[1]);

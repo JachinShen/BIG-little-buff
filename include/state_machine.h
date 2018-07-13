@@ -33,6 +33,7 @@ public:
     int getLedNow();
     int getBlockIdNow();
     int sendBlockID();
+    bool isWait() {return state == WAIT;}
     //bool serial_send;
 
 private:

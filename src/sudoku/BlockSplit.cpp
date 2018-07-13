@@ -45,7 +45,7 @@ bool BlockSplit::processMnist(Mat& input, Rect& led_rect,
         cvtColor(input, gray, CV_BGR2GRAY);
     }
     threshold(gray, binary, param[GRAY_THRES], 255, THRESH_BINARY);
-    findContours(binary.clone(), contours, CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE);
+    findContours(binary.clone(), contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
 
     for (uint i = 0; i < contours.size(); ++i) {
         Rect bound = boundingRect(contours[i]);

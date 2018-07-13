@@ -64,8 +64,8 @@ void ControlSM::run()
         //++ready_state_ctr;
         if (led[0] != -1) {
             //ROS_INFO_STREAM("Ready Sudoku Confirm: " << sudoku_confirm[led[0]]);
-            if (sudoku[led[0]] != -1 ) {
-            //if (sudoku[led[0]] != -1 && sudoku_confirm[led[0]] > 50) {
+            //if (sudoku[led[0]] != -1 ) {
+            if (sudoku[led[0]] != 0 && sudoku_confirm[led[0]] > 60) {
                 //ready_state_ctr = 0;
                 memcpy(sudoku_last, sudoku, sizeof(sudoku));
                 falling_edge = false;
@@ -88,7 +88,7 @@ void ControlSM::run()
         || state == THREE_FOUR || state == FOUR_FIVE) {
         if (led_fresh && sudoku_fresh) {
             checkLed();
-            if (led_remain && sudoku_confirm[led[1]] > 50) {
+            if (led_remain && sudoku_confirm[led[1]] > 60) {
                 transferNext();
             } else if (led[0] != -1) {
             //} else if (led[0] != -1 && sudoku_confirm[led[0]] > 50) {
@@ -131,6 +131,9 @@ void ControlSM::setSudoku(vector<int16_t> data)
     for (uint i = 0; i < 10; ++i) {
         sudoku[i] = data[i];
         sudoku_confirm[i] = data[i + 10];
+    }
+    if (!tick_run) {
+        return;
     }
     sudoku_fresh = true;
     if (sudokuChange()) {
@@ -232,7 +235,7 @@ int ControlSM::getBlockIdNow()
 void ControlSM::freshCtr()
 {
     if (state == WAIT) {
-        activateSudoku();
+        pauseSudoku();
         pauseLedMnistFire();
         pauseTick();
         resetSudokuFound();
@@ -254,12 +257,13 @@ void ControlSM::freshCtr()
     } else if (state == ONE_TWO || state == TWO_THREE
             || state == THREE_FOUR || state == FOUR_FIVE) {
         needFreshLedSudoku();
-        activateSudoku();
+        //activateSudoku();
+        pauseSudoku();
         activateLedMnistFire();
     } else {
         state = WAIT;
-        activateSudoku();
-        activateLedMnistFire();
+        //activateSudoku();
+        //activateLedMnistFire();
     }
 }
 
@@ -296,7 +300,7 @@ bool ControlSM::sudokuChange()
         }
     }
     ROS_INFO_STREAM("Sudoku Change: " << change_cnt);
-    return change_cnt >= 3;
+    return change_cnt >= 4;
 }
 
 void ControlSM::setDemarcateComplete()

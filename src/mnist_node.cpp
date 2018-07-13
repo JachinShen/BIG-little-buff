@@ -30,7 +30,7 @@ void process() {
     img_roi = img(sudoku_rect);
     //cvtColor(img_roi, gray, CV_BGR2GRAY);
     gray = img_roi;
-    threshold(gray, binary, 100, 255, CV_THRESH_BINARY);
+    threshold(gray, binary, 40, 255, CV_THRESH_BINARY);
 
     findContours(binary.clone(), contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
     mnist_rect.clear();
@@ -121,7 +121,7 @@ void mnistParamCallback(const std_msgs::Int16MultiArray& msg)
 void mnistCtrCallback(const std_msgs::Bool& msg)
 {
     mnist_run = msg.data;
-    //process();
+    process();
 }
 
 void mnistIdCallback(const std_msgs::Int16MultiArray& msg)

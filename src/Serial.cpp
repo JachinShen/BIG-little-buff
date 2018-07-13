@@ -164,23 +164,25 @@ int Serial::buffMode()
 {
     static int stm_state = 0;
     bool is_buff_mode = false;
-    for (int i=0; i<20 && receive_buf[i] != '\0'; ++i) {
+    //cout << "Receive: ";
+    for (int i=0; i<30; ++i) {
+        //cout << " " << hex << (unsigned int)(unsigned char)receive_buf[i];
         switch(stm_state) {
-            case 0: if ((int)receive_buf[i] == 0xff) {
+            case 0: if ((unsigned int)(unsigned char)receive_buf[i] == 0xff) {
                         stm_state = 1;
                     }
                     break;
-            case 1: if ((int)receive_buf[i] == 0x01
-                            || (int) receive_buf[i] == 0x02) {
+            case 1: if ((unsigned int)(unsigned char)receive_buf[i] == 0x01
+                            || (unsigned int)(unsigned char) receive_buf[i] == 0x02) {
                         is_buff_mode = true;
                         stm_state = 2;
                     }
                     break;
-            case 2: if ((int)receive_buf[i] == 0x00) {
+            case 2: if ((unsigned int)(unsigned char)receive_buf[i] == 0x00) {
                         stm_state = 3;
                     }
                     break;
-            case 3: if ((int)receive_buf[i] == 0xfe) {
+            case 3: if ((unsigned int)(unsigned char)receive_buf[i] == 0xfe) {
                         stm_state = 4;
                     }
                     break;
@@ -195,7 +197,6 @@ int Serial::buffMode()
 
     }
     return 0;
-    cout << "Receive: " << hex << (int)receive_buf[0] << endl;
         //<< (int)receive_buf[1] << (int)receive_buf[2] << (int)receive_buf[3] << endl;
     //if ((int)receive_buf[0] == 0xff 
             //&& (int)receive_buf[1] == 0x01

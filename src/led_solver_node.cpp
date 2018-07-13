@@ -26,19 +26,23 @@ void process()
 
     ROS_INFO_STREAM("Led Rect: " << led_rect);
     led_roi = Mat(img, led_rect);
-    if (led_solver.process(led_roi)) {
+    Rect bound_all_rect;
+    if (led_solver.process(led_roi, bound_all_rect)) {
+        //ROS_INFO_STREAM("Bound All Rect: " << bound_all_rect);
         led_num_msg.data.clear();
         for (uint i = 0; i < 5; ++i)
             led_num_msg.data.push_back(led_solver.getResult(i));
         led_num_pub.publish(led_num_msg);
         if (led_solver.confirmLed()) {
+            //led_rect = Rect(led_rect.tl() + bound_all_rect.tl(),
+                    //led_rect.tl() + bound_all_rect.br());
             led_run = false;
         }
     } else {
-        led_num_msg.data.clear();
-        for (uint i = 0; i < 5; ++i)
-            led_num_msg.data.push_back(led_solver.getResult(i));
-        led_num_pub.publish(led_num_msg);
+        //led_num_msg.data.clear();
+        //for (uint i = 0; i < 5; ++i)
+            //led_num_msg.data.push_back(led_solver.getResult(i));
+        //led_num_pub.publish(led_num_msg);
     }
 
 }
@@ -79,7 +83,7 @@ void ledParamCallback(const std_msgs::Int16MultiArray& msg)
 void ledCtrCallback(const std_msgs::Bool& msg)
 {
     led_run = msg.data;
-    //process();
+    process();
     //if (!led_run)
         //return;
     //static std_msgs::Int16MultiArray led_num_msg;
