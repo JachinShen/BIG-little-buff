@@ -57,7 +57,7 @@ int main(int argc, char** argv)
                 //ROS_INFO("Publish");
 
                 imshow("src", frame);
-                waitKey(0);
+                waitKey(1);
             }
         }
     }

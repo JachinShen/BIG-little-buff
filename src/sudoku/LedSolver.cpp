@@ -104,9 +104,11 @@ bool LedSolver::process(Mat& led_roi, Rect& bound_all_rect)
 
     sort(digits.begin(), digits.end(), compareRectX);
 
-    if (digits.size() < 5) {
-        int curSize = digits.size();
+    if (digits.size() < 5 && !digits.empty()) {
+        int curSize = digits.size(), maxwidth = digits.front().width, maxheight = digits.front().height;
         for (int i = 0; i < curSize - 1 && digits.size() < 5; i++) {
+            maxwidth = max(maxwidth, digits[i].width);
+            maxheight = max(maxheight, digits[i].height);
             if (digits[i].x + digits[i].width * 2 >= digits[i + 1].x) {
                 continue;
             } else {
@@ -120,16 +122,42 @@ bool LedSolver::process(Mat& led_roi, Rect& bound_all_rect)
                     newx = (digits[i].x + digits[i + 1].x) / 2;
                 }
                 Rect bound = Rect(newx, newy, newwidth, newheight);
+                ROS_INFO_STREAM("Led Guess Rect: " << bound);
                 digits.push_back(bound);
             }
         }
+        sort(digits.begin(), digits.end(), compareRectX);
+        if (digits.size() < 5 && !digits.empty()) {
+            bool left = true, right = true;
+            while (left && digits.size() < 5) {
+                int newx = digits.front().x - maxwidth * 4 / 3 - 3, newy = digits.front().y, newwidth = maxwidth + 3, newheight = digits.front().height;
+                Rect bound = Rect(newx, newy, newwidth, newheight);
+                Mat roi = (led_roi)(bound).clone();
+                if (predictCross(roi) == -1)
+                    left = false;
+                if (left)
+                    digits.insert(digits.begin(), bound);
+            }
+            while (right && digits.size() < 5) {
+                int newx = digits.back().x + maxwidth * 4 / 3 - 3, newy = digits.back().y, newwidth = maxwidth + 3, newheight = digits.back().height;
+                Rect bound = Rect(newx, newy, newwidth, newheight);
+                Mat roi = (led_roi)(bound).clone();
+                if (predictCross(roi) == -1)
+                    right = false;
+                if (right)
+                    digits.push_back(bound);
+            }
+        }
+        sort(digits.begin(), digits.end(), compareRectX);
     }
 
     if (digits.size() != 5) {
+        cout << "digit size error, current size:" << digits.size() << endl;
         ROS_INFO("Clear vector");
         digits.clear(); // add for secure, otherwise munmap_chunk() error will be raised if there are too many elements in the vector (about 30)
         return false;
     }
+
     for (uint i = 0; i < digits.size(); ++i) {
         float hw_ratio = (float)digits[i].height / digits[i].width;
         if (hw_ratio < 1.0)

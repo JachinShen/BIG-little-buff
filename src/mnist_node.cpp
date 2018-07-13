@@ -30,13 +30,14 @@ void process() {
     img_roi = img(sudoku_rect);
     //cvtColor(img_roi, gray, CV_BGR2GRAY);
     gray = img_roi;
-    threshold(gray, binary, 40, 255, CV_THRESH_BINARY);
+    threshold(gray, binary, 100, 255, CV_THRESH_BINARY);
 
     findContours(binary.clone(), contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
     mnist_rect.clear();
+    int MAX_AREA = sudoku_rect.area() / 9 * 2;
     for (uint i = 0; i < contours.size(); ++i) {
         Rect bound = boundingRect(contours[i]);
-        if (bound.area() < 500)
+        if (bound.area() < 500 || bound.area() > MAX_AREA)
             continue;
         mnist_rect.push_back(bound);
         if (mnist_rect.size() == 9) {

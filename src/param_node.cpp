@@ -13,7 +13,7 @@ static int SUDOKU_PARAM[BlockSplit::PARAM_SIZE] = {
     //35,
     100,
     //300,
-    1000,
+    900,
     //1000,
     3000,
     30,
