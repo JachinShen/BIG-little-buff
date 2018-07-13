@@ -17,8 +17,8 @@ void LedSolver::init()
         results[i] = -1;
 
     param[RED_THRESHOLD] = 128;
-    
-    
+
+
     param[GRAY_THRESHOLD] = 128;
     param[BOUND_AREA_MAX] = 30;
     param[BOUND_AREA_MAX] = 100;
@@ -83,7 +83,6 @@ bool LedSolver::process(Mat& led_roi, Rect& bound_all_rect)
 
 	getRed(led_roi, led_roi_binary);
     findContours(led_roi_binary, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
-	
 	digits.clear();
 	for (uint i = 0; i < contours.size(); ++i) {
 		Rect bound = boundingRect(contours[i]);
@@ -102,22 +101,41 @@ bool LedSolver::process(Mat& led_roi, Rect& bound_all_rect)
 		digits.push_back(bound);
 	}
 
-		
+	sort(digits.begin(), digits.end(), compareRect);
+       
+	if (digits.size() < 5) {
+	        int curSize = digits.size();
+		for(int i = 0; i < curSize-1 && digits.size() < 5; i++)
+		{
+		        
+			if(digits[i].x + digits[i].width*2 >= digits[i+1].x )
+			{
+			        continue;
+			}
+				
+			else
+			{
+			        int newx = (digits[i+1].x+digits[i].x)/2, newy = (digits[i].y+digits[i+1].y)/2, 
+			                newwidth = max(digits[i].width,digits[i+1].width), newheight = max(digits[i].height,digits[i+1].height);
+			        if ((float)digits[i].height / digits[i].width > param[HW_RATIO_FOR_DIGIT_ONE] / 100.0)
+			        {
+			                newx =  (digits[i+1].x+digits[i].x)/2 + digits[i].width - digits[i+1].width;
+			                newx = (digits[i].x + digits[i].width + digits[i+1].x + digits[i+1].width)/2 - digits[i+1].width;
+			        }
+			        if((float)digits[i+1].height / digits[i+1].width > param[HW_RATIO_FOR_DIGIT_ONE] / 100.0){
+			                newx = (digits[i].x + digits[i+1].x)/2;
+			        }
+				Rect bound = Rect( newx, newy, newwidth, newheight);
+				digits.push_back(bound);
+			}
+		}
+    }
+			
 	if (digits.size() != 5) {
 		ROS_INFO("Clear vector");
 		digits.clear(); // add for secure, otherwise munmap_chunk() error will be raised if there are too many elements in the vector (about 30)
 		return false;
 	}
-
-    sort(digits.begin(), digits.end(), compareRectX);
-	
-	
-	
-    for (uint i = 0; i < 5; ++i) {
-        results[i] = -1;
-    }
-	
-
     for (uint i = 0; i < digits.size(); ++i) {
         float hw_ratio = (float)digits[i].height / digits[i].width;
         if (hw_ratio < 1.0)
@@ -126,11 +144,11 @@ bool LedSolver::process(Mat& led_roi, Rect& bound_all_rect)
         if (hw_ratio > param[HW_RATIO_FOR_DIGIT_ONE] / 100.0) {
 			int segment1 = scanSegmentY(roi, roi.rows / 3, 0, roi.cols);
 			int segment2 = scanSegmentY(roi, roi.rows * 2 / 3, 0, roi.cols);
-			if(segment1 > 2 && segment2 > 2) results[i] = 1;
+			if(segment1 > 1 && segment2 > 1) results[i] = 1;
 			else results[i] = -1;
             continue;
         }
-        
+
         Point center = Point(digits[i].width / 2, digits[i].height / 2);
         Mat M2 = getRotationMatrix2D(center, param[ROTATION_DEGREE], 1);
         warpAffine(roi, roi, M2, roi.size(), 1, 0, 0);
@@ -147,7 +165,6 @@ bool LedSolver::process(Mat& led_roi, Rect& bound_all_rect)
     imshow("draw", draw);
     imshow("Cross Led Red Binary: ", led_roi);
 #endif
-	
     return true;
 }
 
