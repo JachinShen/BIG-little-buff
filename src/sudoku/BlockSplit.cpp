@@ -160,11 +160,13 @@ bool BlockSplit::process(Mat& input, Rect& led_rect,
         side_blocks.push_back(bound);
     }
 
+#if DRAW == SHOW_ALL
     for (uint i = 0; i < side_blocks.size(); ++i) {
         rectangle(draw, side_blocks[i], 255, 2);
     }
     imshow("sudoku draw", draw);
     imshow("sudoku binary", binary);
+#endif
 
     if (side_blocks.size() != 10)
         return false;

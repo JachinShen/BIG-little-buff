@@ -46,25 +46,27 @@ void LedSolver::setParam(int index, int value)
 void LedSolver::getRed(Mat& led_roi, Mat& led_roi_binary)
 {
     static Mat bgr_split[3];
-    static Mat led_roi_red;
+    //static Mat led_roi_red;
     static Mat led_roi_gray;
 
     cvtColor(led_roi, led_roi_gray, COLOR_BGR2GRAY);
     threshold(led_roi_gray, led_roi_gray, param[GRAY_THRESHOLD], 255, THRESH_BINARY);
 
-    split(led_roi, bgr_split);
-    led_roi_red = 2 * bgr_split[2] - bgr_split[1] - bgr_split[0];
-    threshold(led_roi_red, led_roi_red, param[RED_THRESHOLD], 255, THRESH_BINARY);
+    //split(led_roi, bgr_split);
+    //led_roi_red = 2 * bgr_split[2] - bgr_split[1] - bgr_split[0];
+    //threshold(led_roi_red, led_roi_red, param[RED_THRESHOLD], 255, THRESH_BINARY);
 
     //led_roi = led_roi_red & led_roi_gray;
     led_roi = led_roi_gray;
-    led_roi_binary = led_roi_gray;
+    //led_roi_binary = led_roi_gray;
 
     //erode(led_roi, led_roi_binary, kernel);
     //dilate(led_roi, led_roi_binary, kernel);
     dilate(led_roi, led_roi_binary, kernel);
     //imshow("original binary:", led_roi);
+#if DRAW == SHOW_ALL
     imshow("Led Red Binary dilated: ", led_roi_binary);
+#endif
 }
 
 bool LedSolver::process(Mat& led_roi, Rect& bound_all_rect)
@@ -81,7 +83,7 @@ bool LedSolver::process(Mat& led_roi, Rect& bound_all_rect)
 #endif
 
     getRed(led_roi, led_roi_binary);
-    findContours(led_roi_binary, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+    findContours(led_roi_binary.clone(), contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
     digits.clear();
     for (uint i = 0; i < contours.size(); ++i) {
         Rect bound = boundingRect(contours[i]);
@@ -132,7 +134,7 @@ bool LedSolver::process(Mat& led_roi, Rect& bound_all_rect)
             while (left && digits.size() < 5) {
                 int newx = digits.front().x - maxwidth * 4 / 3 - 3, newy = digits.front().y, newwidth = maxwidth + 3, newheight = digits.front().height;
                 Rect bound = Rect(newx, newy, newwidth, newheight);
-                Mat roi = (led_roi)(bound).clone();
+                Mat roi = (led_roi_binary)(bound).clone();
                 if (predictCross(roi) == -1)
                     left = false;
                 if (left)
@@ -141,7 +143,7 @@ bool LedSolver::process(Mat& led_roi, Rect& bound_all_rect)
             while (right && digits.size() < 5) {
                 int newx = digits.back().x + maxwidth * 4 / 3 - 3, newy = digits.back().y, newwidth = maxwidth + 3, newheight = digits.back().height;
                 Rect bound = Rect(newx, newy, newwidth, newheight);
-                Mat roi = (led_roi)(bound).clone();
+                Mat roi = (led_roi_binary)(bound).clone();
                 if (predictCross(roi) == -1)
                     right = false;
                 if (right)
@@ -162,7 +164,7 @@ bool LedSolver::process(Mat& led_roi, Rect& bound_all_rect)
         float hw_ratio = (float)digits[i].height / digits[i].width;
         if (hw_ratio < 1.0)
             hw_ratio = 1.0 / hw_ratio;
-        Mat roi = (led_roi_binary)(digits[i]);
+        Mat roi = (led_roi_binary)(digits[i]).clone();
         if (hw_ratio > param[HW_RATIO_FOR_DIGIT_ONE] / 100.0) {
             int segment1 = scanSegmentY(roi, roi.rows / 3, 0, roi.cols);
             int segment2 = scanSegmentY(roi, roi.rows * 2 / 3, 0, roi.cols);
@@ -187,7 +189,7 @@ bool LedSolver::process(Mat& led_roi, Rect& bound_all_rect)
         rectangle(draw, digits[i], Scalar(255, 0, 0), 2);
     }
     imshow("draw", draw);
-    imshow("Cross Led Red Binary: ", led_roi);
+    //imshow("Cross Led Red Binary: ", led_roi);
 #endif
     return true;
 }

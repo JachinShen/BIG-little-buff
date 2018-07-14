@@ -47,13 +47,13 @@ using namespace cv;
 #   define PLATFORM PC
 #endif
 
-#if PLATFORM == PC
+//#if PLATFORM == PC
 //#   define VIDEO         VIDEO_FILE
-#   define DRAW          SHOW_ALL
-#elif PLATFORM == MANIFOLD
+#define DRAW          SHOW_ALL
+//#elif PLATFORM == MANIFOLD
 //#   define VIDEO         VIDEO_CAMERA
-#   define DRAW          NO_SHOW
-#endif
+//#   define DRAW          NO_SHOW
+//#endif
 
 #define RECORD RECORD_OFF
 

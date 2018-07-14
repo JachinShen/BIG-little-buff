@@ -8,10 +8,10 @@ set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 #set(CAFFE_LIB /home/ubuntu/caffe/build/lib/)
 #set(OPENBLAS_INCLUDE /opt/OpenBLAS/include)
 #set(OPENBLAS_LIB /opt/OpenBLAS/lib)
-#set(CUDA_INCLUDES /usr/local/cuda/include /usr/local/cuda-6.5/include)
-#set(CUDA_LIBS /usr/local/cuda/lib /usr/local/cuda-6.5/lib)
+set(CUDA_INCLUDES /usr/local/cuda/include /usr/local/cuda-6.5/include)
+set(CUDA_LIBS /usr/local/cuda/lib /usr/local/cuda-6.5/lib)
 ## Add support for C++11, supported in ROS Kinetic and newer
-# add_definitions(-std=c++11)
+add_definitions(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -139,7 +139,7 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 include_directories(
-  #${CUDA_INCLUDES}
+  ${CUDA_INCLUDES}
   #${CAFFE_INCLUDE}
   #${OPENBLAS_INCLUDE}
 )
@@ -226,9 +226,10 @@ install(DIRECTORY launch
 
 #find_package(Boost REQUIRED COMPONENTS system)
 find_package(OpenCV REQUIRED)
-#link_directories(${CAFFE_LIB} #${OPENBLAS_LIB} 
-#${CUDA_LIBS}
-#)
+link_directories(
+#${CAFFE_LIB} #${OPENBLAS_LIB} 
+${CUDA_LIBS}
+)
 add_executable(image_publish_node
     ./src/image_publish_node.cpp
     ./src/sudoku/BlockSplit.cpp

@@ -6,6 +6,7 @@
 #include "sudoku/LedSolver.h"
 #include <opencv2/highgui/highgui.hpp>
 #include <ros/ros.h>
+#include <fstream>
 #include <sstream> // for converting the command line parameter to integer
 
 #include <sys/time.h>
@@ -185,6 +186,35 @@ void mnistCtrCallback(const std_msgs::Bool& msg)
     mnistProcess();
 }
 
+string getFilename()
+{
+#if PLATFORM == PC
+    fstream fin("/home/jachinshen/Projects/lunar_ws/src/buff/out.txt");
+#elif PLATFORM == MANIFOLD
+    fstream fin("/home/ubuntu/lunar_ws/src/buff/out.txt");
+#endif
+    int video_cnt;
+    fin>>video_cnt;
+    stringstream video_ss;
+    video_ss<<video_cnt;
+
+    fin.close();
+    std::string file_name=video_ss.str();
+#if PLATFORM == PC
+    fstream fout("/home/jachinshen/Projects/lunar_ws/src/buff/out.txt");
+#elif PLATFORM == MANIFOLD
+    fstream fout("/home/ubuntu/lunar_ws/src/buff/out.txt");
+#endif
+    video_cnt++;
+    fout<<video_cnt;
+    fout.close();
+
+    file_name = "/home/ubuntu/rosbag/pillar"+file_name+".avi";
+    return file_name;
+}
+
+
+
 int main(int argc, char** argv)
 {
     //Check if video source has been passed as a parameter
@@ -216,6 +246,10 @@ int main(int argc, char** argv)
         VIDEO_CAMERA } video_type;
     while (nh.ok()) {
         cv::VideoCapture cap;
+#if RECORD == RECORD_ON
+        cv::VideoWriter g_writer;
+        g_writer.open(getFilename(), CV_FOURCC('P','I','M','1'),30,cv::Size(640,480));
+#endif
         if ('0' <= argv[1][0] && argv[1][0] <= '9') {
             video_type = VIDEO_CAMERA;
             cap.open(argv[1][0] - '0');
@@ -248,9 +282,15 @@ int main(int argc, char** argv)
                 //gray_pub.publish(gray_msg);
                 //ROS_INFO("Publish");
 
+#if RECORD == RECORD_ON
+                g_writer.write(img);
+#endif
                 imshow("src", img);
                 waitKey(1);
             }
         }
+#if RECORD == RECORD_ON
+        g_writer.close();
+#endif
     }
 }
