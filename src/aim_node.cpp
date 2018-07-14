@@ -10,7 +10,6 @@ static Rect rb_aim_rect;
 static KCFTracker tl_tracker(false, true, false, false);
 static KCFTracker center_tracker(false, true, false, false);
 static KCFTracker rb_tracker(false, true, false, false);
-static cv_bridge::CvImageConstPtr cv_ptr;
 static bool aim_ready_run;
 static BlockSplit block_split;
 static enum TargetPos { TOP_LEFT,
@@ -101,16 +100,6 @@ void aimParamCallback(const std_msgs::Int16MultiArray& msg)
     block_split.setParam(msg.data[0], msg.data[1]);
 }
 
-void imageCallback(const sensor_msgs::ImageConstPtr& msg)
-{
-    try {
-        cv_ptr = cv_bridge::toCvShare(msg, sensor_msgs::image_encodings::BGR8);
-    } catch (cv_bridge::Exception& e) {
-        ROS_ERROR("cv_bridge exception: %s", e.what());
-        return;
-    }
-}
-
 void aimReadyCallback(const std_msgs::Bool& msg)
 {
     ROS_INFO("Aim Ready Call!");
@@ -142,9 +131,6 @@ int main(int argc, char* argv[])
 
     ros::Subscriber aim_sub = nh.subscribe("buff/aim_ready", 1, aimReadyCallback);
     aim_param_sub = nh.subscribe("buff/aim_param", 1, aimParamCallback);
-    image_transport::ImageTransport it(nh);
-    image_transport::Subscriber sub
-        = it.subscribe("camera/image", 1, imageCallback);
     aim_pos_pub
         = nh.advertise<std_msgs::Int16MultiArray>("buff/aim_pos", 100);
 

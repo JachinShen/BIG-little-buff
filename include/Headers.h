@@ -39,6 +39,9 @@ using namespace cv;
 #define RECORD_OFF   0
 #define RECORD_ON    1
 
+#define OPENMP_STOP  0
+#define OPENMP_RUN   1
+
 #define PI 3.14159265358979323
 
 #if defined __arm__
@@ -47,15 +50,9 @@ using namespace cv;
 #   define PLATFORM PC
 #endif
 
-//#if PLATFORM == PC
-//#   define VIDEO         VIDEO_FILE
-#define DRAW          SHOW_ALL
-//#elif PLATFORM == MANIFOLD
-//#   define VIDEO         VIDEO_CAMERA
-//#   define DRAW          NO_SHOW
-//#endif
-
+#define DRAW          NO_SHOW
 #define RECORD RECORD_OFF
+#define OPENMP_SWITCH OPENMP_RUN
 
 
 using std::copy;

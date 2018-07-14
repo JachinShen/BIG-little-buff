@@ -11,7 +11,9 @@
 
 #include "Headers.h"
 
-#define CPU_ONLY
+#if PLATFORM == PC
+#  define CPU_ONLY
+#endif
 
 #include <caffe/caffe.hpp>
 

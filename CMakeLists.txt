@@ -126,6 +126,10 @@ catkin_package(
 #  CATKIN_DEPENDS cv_bridge image_transport roscpp sensor_msgs std_msgs
 #  DEPENDS system_lib
 )
+catkin_package(
+    DEPENDS
+    OpenMP
+)
 
 ###########
 ## Build ##
@@ -226,6 +230,12 @@ install(DIRECTORY launch
 
 #find_package(Boost REQUIRED COMPONENTS system)
 find_package(OpenCV REQUIRED)
+find_package(OpenMP REQUIRED)
+if(OPENMP_FOUND)
+  message(STATUS "OPENMP FOUND")
+  set(OpenMP_FLAGS ${OpenMP_CXX_FLAGS})
+  set(OpenMP_LIBS gomp)
+endif()
 #link_directories(${CAFFE_LIB} #${OPENBLAS_LIB} 
 #${CUDA_LIBS}
 #)
@@ -237,30 +247,32 @@ add_executable(image_publish_node
     ./src/sudoku/caffe_prototype.cpp
     ./src/sudoku/RectSort.cpp
     )
+target_compile_options(image_publish_node PRIVATE ${OpenMP_FLAGS})
 target_link_libraries(image_publish_node
     ${catkin_LIBRARIES}
     ${OpenCV_LIBS}
+    ${OpenMP_LIBS}
     -lcaffe
     glog
     )
-add_executable(sudoku_node 
-    ./src/sudoku_node.cpp
-    ./src/sudoku/BlockSplit.cpp
-    ./src/sudoku/RectSort.cpp
-    )
-target_link_libraries(sudoku_node 
-    ${catkin_LIBRARIES}
-    ${OpenCV_LIBS}
-    )
-add_executable(led_solver_node 
-    ./src/led_solver_node.cpp
-    ./src/sudoku/LedSolver.cpp
-    ./src/sudoku/RectSort.cpp
-    )
-target_link_libraries(led_solver_node 
-    ${catkin_LIBRARIES}
-    ${OpenCV_LIBS}
-    )
+#add_executable(sudoku_node 
+    #./src/sudoku_node.cpp
+    #./src/sudoku/BlockSplit.cpp
+    #./src/sudoku/RectSort.cpp
+    #)
+#target_link_libraries(sudoku_node 
+    #${catkin_LIBRARIES}
+    #${OpenCV_LIBS}
+    #)
+#add_executable(led_solver_node 
+    #./src/led_solver_node.cpp
+    #./src/sudoku/LedSolver.cpp
+    #./src/sudoku/RectSort.cpp
+    #)
+#target_link_libraries(led_solver_node 
+    #${catkin_LIBRARIES}
+    #${OpenCV_LIBS}
+    #)
 add_executable(control_node
     ./src/control_node.cpp
     ./src/state_machine.cpp
@@ -277,30 +289,30 @@ target_link_libraries(param_node
     ${catkin_LIBRARIES}
     ${OpenCV_LIBS}
     )
-add_executable(mnist_node
-    ./src/mnist_node.cpp
-    ./src/sudoku/DnnClassifier.cpp
-    ./src/sudoku/caffe_prototype.cpp
-    ./src/sudoku/RectSort.cpp
-    )
-target_link_libraries(mnist_node 
-    ${catkin_LIBRARIES}
-    ${OpenCV_LIBS}
-    -lcaffe
-    glog
-    )
-add_executable(fire_node
-    ./src/fire_node.cpp
-    ./src/sudoku/DnnClassifier.cpp
-    ./src/sudoku/caffe_prototype.cpp
-    ./src/sudoku/RectSort.cpp
-    )
-target_link_libraries(fire_node 
-    ${catkin_LIBRARIES}
-    ${OpenCV_LIBS}
-    -lcaffe
-    glog
-    )
+#add_executable(mnist_node
+    #./src/mnist_node.cpp
+    #./src/sudoku/DnnClassifier.cpp
+    #./src/sudoku/caffe_prototype.cpp
+    #./src/sudoku/RectSort.cpp
+    #)
+#target_link_libraries(mnist_node 
+    #${catkin_LIBRARIES}
+    #${OpenCV_LIBS}
+    #-lcaffe
+    #glog
+    #)
+#add_executable(fire_node
+    #./src/fire_node.cpp
+    #./src/sudoku/DnnClassifier.cpp
+    #./src/sudoku/caffe_prototype.cpp
+    #./src/sudoku/RectSort.cpp
+    #)
+#target_link_libraries(fire_node 
+    #${catkin_LIBRARIES}
+    #${OpenCV_LIBS}
+    #-lcaffe
+    #glog
+    #)
 add_executable(aim_node
     ./src/aim_node.cpp
     ./src/sudoku/BlockSplit.cpp
