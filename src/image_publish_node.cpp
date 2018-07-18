@@ -120,7 +120,7 @@ void ledProcess()
             for (uint i = 0; i < 5; ++i)
                 led_num_msg.data.push_back(led_solver.getResult(i));
             led_num_pub.publish(led_num_msg);
-            led_run = false;
+            //led_run = false;
         }
     }
 }
@@ -139,10 +139,10 @@ void ledCtrCallback(const std_msgs::Bool& msg)
 
 void mnistProcess()
 {
-    if (!mnist_run) {
-        //ROS_INFO("Ignore Mnist!");
-        return;
-    }
+    //if (!mnist_run) {
+        ////ROS_INFO("Ignore Mnist!");
+        //return;
+    //}
 
     if (sudoku_rect.area() == 0)
         return;
@@ -155,7 +155,7 @@ void mnistProcess()
     //img_roi = img(sudoku_rect);
     //cvtColor(img_roi, gray, CV_BGR2GRAY);
     gray_roi = gray(sudoku_rect);
-    threshold(gray_roi, binary, 100, 255, CV_THRESH_BINARY);
+    threshold(gray_roi, binary, 70, 255, CV_THRESH_BINARY);
 
     findContours(binary.clone(), contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
     mnist_rect.clear();
@@ -170,7 +170,7 @@ void mnistProcess()
         }
     }
 
-    sort(mnist_rect.begin(), mnist_rect.end(), compareRect);
+    sort(mnist_rect.begin(), mnist_rect.end(), compareRectX);
     mnist_roi.clear();
     binary = ~binary;
     for (uint i = 0; i < mnist_rect.size(); ++i) {
@@ -191,7 +191,8 @@ void mnistProcess()
     for (uint i = 0; i < 10; ++i) {
         mnist_num_msg.data.push_back(mnist_classifier.confirmNumber(i));
     }
-    mnist_num_pub.publish(mnist_num_msg);
+    //mnist_num_pub.publish(mnist_num_msg);
+    fire_num_pub.publish(mnist_num_msg);
 
 #if DRAW == SHOW_ALL
     for (uint i = 0; i < mnist_rect.size(); ++i) {
@@ -230,13 +231,13 @@ void fireProcess()
 
     sudoku_roi = gray(sudoku_rect);
     //cvtColor(sudoku_roi, gray, CV_BGR2GRAY);
-    threshold(sudoku_roi, binary, 150, 255, CV_THRESH_BINARY);
+    threshold(sudoku_roi, binary, 170, 255, CV_THRESH_BINARY);
 
     findContours(binary.clone(), contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
     int MAX_AREA = sudoku_rect.area() / 9 * 2;
     for (uint i = 0; i < contours.size(); ++i) {
         Rect bound = boundingRect(contours[i]);
-        if (bound.area() < 100 || bound.area() > MAX_AREA)
+        if (bound.area() < 200 || bound.area() > MAX_AREA)
             continue;
         fire_rect.push_back(bound);
     }
@@ -250,6 +251,7 @@ void fireProcess()
             continue;
         copyMakeBorder(roi, roi, 5, 5, left_right_gap, left_right_gap, BORDER_CONSTANT);
         resize(roi, roi, Size(28, 28));
+        imshow("Fire roi", roi);
         fire_roi.push_back(roi);
     }
     fire_classifier.process(fire_roi);
@@ -377,7 +379,7 @@ int main(int argc, char** argv)
             ros::spinOnce();
             // Check if grabbed frame is actually full with some content
             if (!img.empty()) {
-                //cv::resize(frame, frame, Size(640, 480));
+                cv::resize(img, img, Size(640, 480));
                 ROS_INFO("Process Start");
                 cv::cvtColor(img, gray, CV_BGR2GRAY);
                 sudokuProcess();
@@ -395,7 +397,7 @@ int main(int argc, char** argv)
                 g_writer.write(img);
 #endif
                 imshow("src", img);
-                waitKey(1);
+                waitKey(0);
             }
         }
 #elif OPENMP_SWITCH == OPENMP_RUN

@@ -1,6 +1,6 @@
 <launch>
-    <!--<node pkg="buff" name="image_publish_node" type="image_publish_node" args="/home/jachinshen/Videos/xiaofu/132-cut.avi" output="screen"/>-->
-      <node pkg="buff" name="image_publish_node" type="image_publish_node" args="1" respawn="true"/>
+    <node pkg="buff" name="image_publish_node" type="image_publish_node" args="/home/jachinshen/Videos/xiaofu/132-cut.avi" output="screen"/>
+      <!--<node pkg="buff" name="image_publish_node" type="image_publish_node" args="1" respawn="true"/>-->
       <!--<node pkg="buff" name="image_publish_node" type="image_publish_node" args="/home/jachinshen/my_video-3.mkv" output="screen"/>-->
       <!--<node pkg="buff" name="aim_node" type="aim_node" args="/home/jachinshen/Videos/Robo/warmingup/VID_20180406_140726.mp4" output="screen"/>-->
     <!--<node pkg="buff" name="sudoku_node" type="sudoku_node"/>-->
