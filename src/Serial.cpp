@@ -163,40 +163,39 @@ void Serial::sendTarget(int target_x, int target_y, int is_found)
 int Serial::buffMode()
 {
     static int stm_state = 0;
-    bool is_buff_mode = false;
+    int buff_mode = -1;
     //cout << "Receive: ";
     for (int i=0; i<30; ++i) {
         //cout << " " << hex << (unsigned int)(unsigned char)receive_buf[i];
         switch(stm_state) {
-            case 0: if ((unsigned int)(unsigned char)receive_buf[i] == 0xff) {
+            case 0: if ((unsigned int)(unsigned char) receive_buf[i] == 0xff) {
                         stm_state = 1;
                     }
                     break;
-            case 1: if ((unsigned int)(unsigned char)receive_buf[i] == 0x01
+            case 1: if ((unsigned int)(unsigned char) receive_buf[i] == 0x00
+                            || (unsigned int)(unsigned char) receive_buf[i] == 0x01
                             || (unsigned int)(unsigned char) receive_buf[i] == 0x02) {
-                        is_buff_mode = true;
+                        buff_mode = (unsigned int)(unsigned char)receive_buf[i];
+                        cout << "Get Buff Mode: " << (unsigned int)(unsigned char) receive_buf[i];
                         stm_state = 2;
                     }
                     break;
-            case 2: if ((unsigned int)(unsigned char)receive_buf[i] == 0x00) {
+            case 2: if ((unsigned int)(unsigned char) receive_buf[i] == 0x00) {
                         stm_state = 3;
                     }
                     break;
-            case 3: if ((unsigned int)(unsigned char)receive_buf[i] == 0xfe) {
+            case 3: if ((unsigned int)(unsigned char) receive_buf[i] == 0xfe) {
                         stm_state = 4;
-                    }
-                    break;
-            case 4: if (is_buff_mode) {
-                        return 1;
-                    } else {
-                        return 0;
                     }
                     break;
             default: break;
         }
+        if (stm_state == 4) {
+            return buff_mode;
+        }
 
     }
-    return 0;
+    return -1;
         //<< (int)receive_buf[1] << (int)receive_buf[2] << (int)receive_buf[3] << endl;
     //if ((int)receive_buf[0] == 0xff 
             //&& (int)receive_buf[1] == 0x01

@@ -29,6 +29,8 @@ void ControlSM::init()
     led_fresh = false;
     serial_send = false;
     wait_for_demarcate = false;
+    wait_for_downline = false;
+    buff_type = FIRE;
     freshCtr();
 
     for (int i = 0; i < 5; ++i)
@@ -136,9 +138,12 @@ void ControlSM::setSudoku(vector<int16_t> data)
         return;
     }
     sudoku_fresh = true;
-    if (sudokuChange()) {
-        ROS_INFO("Falling Edge");
-        falling_edge = true;
+    if (state == LED_ONE || state == LED_TWO || state == LED_THREE
+            || state == LED_FOUR || state == LED_FIVE) {
+        if (sudokuChange()) {
+            ROS_INFO("Falling Edge");
+            falling_edge = true;
+        }
     }
 }
 
@@ -208,10 +213,14 @@ int ControlSM::sendBlockID()
         }
         return 0;
     }
+    if (wait_for_downline) {
+        return -1;
+    }
     if (sudoku_fresh && led_fresh
         && (state == LED_ONE || state == LED_TWO || state == LED_THREE
                || state == LED_FOUR || state == LED_FIVE)) {
         serial_send = false;
+        wait_for_downline = true;
         return getBlockIdNow();
     } else {
         return -1;
@@ -300,7 +309,7 @@ bool ControlSM::sudokuChange()
         }
     }
     ROS_INFO_STREAM("Sudoku Change: " << change_cnt);
-    return change_cnt >= 4;
+    return change_cnt >= 5;
 }
 
 void ControlSM::setDemarcateComplete()

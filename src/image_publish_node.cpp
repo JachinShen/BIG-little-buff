@@ -55,7 +55,7 @@ void initImageProcess()
     mnist_classifier.init(model_file, trained_file, mean_file, label_file);
     mnist_run = true;
     fire_classifier.init(fire_model_file, fire_trained_file, mean_file, label_file);
-    fire_run = true;
+    fire_run = false;
 }
 
 void sudokuProcess()
@@ -65,7 +65,7 @@ void sudokuProcess()
 
     static Mat binary;
 
-    if (block_split.processMnist(gray, led_rect, sudoku_rect)) {
+    if (block_split.process(gray, led_rect, sudoku_rect)) {
         ROS_INFO_STREAM("Led Rect: " << led_rect);
         ROS_INFO_STREAM("Sudoku Rect: " << sudoku_rect);
         std_msgs::Int16MultiArray sudoku_rect_msg;
@@ -100,9 +100,11 @@ void ledProcess()
 
     led_roi = Mat(img, led_rect);
     Rect bound_all_rect;
+    static int led_miss_ctr = 0;
+    static std_msgs::Int16MultiArray led_num_msg;
     if (led_solver.process(led_roi, bound_all_rect)) {
+        led_miss_ctr = 0;
         //ROS_INFO_STREAM("Bound All Rect: " << bound_all_rect);
-        static std_msgs::Int16MultiArray led_num_msg;
         led_num_msg.data.clear();
         for (uint i = 0; i < 5; ++i)
             led_num_msg.data.push_back(led_solver.getResult(i));
@@ -111,6 +113,15 @@ void ledProcess()
             led_run = false;
         }
     } else {
+        ++led_miss_ctr;
+        if (led_miss_ctr >= 2) {
+            led_miss_ctr = 0;
+            led_num_msg.data.clear();
+            for (uint i = 0; i < 5; ++i)
+                led_num_msg.data.push_back(led_solver.getResult(i));
+            led_num_pub.publish(led_num_msg);
+            led_run = false;
+        }
     }
 }
 
@@ -219,13 +230,13 @@ void fireProcess()
 
     sudoku_roi = gray(sudoku_rect);
     //cvtColor(sudoku_roi, gray, CV_BGR2GRAY);
-    threshold(sudoku_roi, binary, 180, 255, CV_THRESH_BINARY);
+    threshold(sudoku_roi, binary, 150, 255, CV_THRESH_BINARY);
 
     findContours(binary.clone(), contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
     int MAX_AREA = sudoku_rect.area() / 9 * 2;
     for (uint i = 0; i < contours.size(); ++i) {
         Rect bound = boundingRect(contours[i]);
-        if (bound.area() < 500 || bound.area() > MAX_AREA)
+        if (bound.area() < 100 || bound.area() > MAX_AREA)
             continue;
         fire_rect.push_back(bound);
     }
@@ -325,12 +336,15 @@ int main(int argc, char** argv)
     sudoku_rect_pub = nh.advertise<std_msgs::Int16MultiArray>("buff/sudoku_rect", 1, true);
     led_num_pub = nh.advertise<std_msgs::Int16MultiArray>("buff/led_num", 1);
     mnist_num_pub = nh.advertise<std_msgs::Int16MultiArray>("buff/mnist_num", 1, true);
+    fire_num_pub = nh.advertise<std_msgs::Int16MultiArray>("buff/fire_num", 1, true);
     ros::Subscriber sudoku_param_sub = nh.subscribe("buff/sudoku_param", 1, sudokuParamCallback);
     ros::Subscriber sudoku_ctr_sub = nh.subscribe("buff/sudoku_ctr", 1, sudokuCtrCallback);
     ros::Subscriber led_param_sub = nh.subscribe("buff/led_param", 1, ledParamCallback);
     ros::Subscriber led_ctr_sub = nh.subscribe("buff/led_ctr", 1, ledCtrCallback);
     ros::Subscriber mnist_param_sub = nh.subscribe("buff/mnist_param", 1, mnistParamCallback);
     ros::Subscriber mnist_ctr_sub = nh.subscribe("buff/mnist_ctr", 1, mnistCtrCallback);
+    ros::Subscriber fire_param_sub = nh.subscribe("buff/fire_param", 1, fireParamCallback);
+    ros::Subscriber fire_ctr_sub = nh.subscribe("buff/fire_ctr", 1, fireCtrCallback);
 
     //cv::Mat frame, gray;
     //sensor_msgs::ImagePtr msg, gray_msg;
@@ -368,7 +382,8 @@ int main(int argc, char** argv)
                 cv::cvtColor(img, gray, CV_BGR2GRAY);
                 sudokuProcess();
                 ledProcess();
-                mnistProcess();
+                //mnistProcess();
+                fireProcess();
                 ROS_INFO("Process End");
                 //msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", frame).toImageMsg();
                 //gray_msg = cv_bridge::CvImage(std_msgs::Header(), "mono8", gray).toImageMsg();
@@ -401,7 +416,8 @@ int main(int argc, char** argv)
                     cv::cvtColor(img, gray, CV_BGR2GRAY);
                     sudokuProcess();
                     ledProcess();
-                    mnistProcess();
+                    //mnistProcess();
+                    fireProcess();
                     ROS_INFO("Process End");
                 }
             }
@@ -421,7 +437,8 @@ int main(int argc, char** argv)
                     cv::cvtColor(img, gray, CV_BGR2GRAY);
                     sudokuProcess();
                     ledProcess();
-                    mnistProcess();
+                    //mnistProcess();
+                    fireProcess();
                     ROS_INFO("Process End");
                 }
             }

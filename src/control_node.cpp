@@ -50,10 +50,10 @@ void fireNumCallback(const std_msgs::Int16MultiArray& msg)
             << msg.data[2] << msg.data[3] << msg.data[4]
             << msg.data[5] << msg.data[6] << msg.data[7]
             << msg.data[8] << msg.data[9]);
-    ROS_INFO_STREAM("Fire Possibility: " << msg.data[10] << msg.data[11]
-            << msg.data[12] << msg.data[13] << msg.data[14]
-            << msg.data[15] << msg.data[16] << msg.data[17]
-            << msg.data[18] << msg.data[19]);
+    ROS_INFO_STREAM("Fire Possibility: " << msg.data[10] << " " << msg.data[11] << " "
+            << msg.data[12] << " " << msg.data[13] << " " << msg.data[14] << " "
+            << msg.data[15] << " " << msg.data[16] << " " << msg.data[17] << " "
+            << msg.data[18] << " " << msg.data[19]);
 }
 
 void fireRectCallback(const std_msgs::Int16MultiArray& msg)
@@ -106,6 +106,10 @@ void waitkeyTimerCallback(const ros::TimerEvent&)
 {
     char key_press = waitKey(1);
     if (key_press == 'b') {
+        csm.setBuffType(ControlSM::FIRE);
+        csm.transferState(ControlSM::READY);
+    } else if (key_press == 'g') {
+        csm.setBuffType(ControlSM::FIRE);
         csm.transferState(ControlSM::READY);
     } else if (key_press == 'c') {
         ROS_INFO("Continue");
@@ -123,12 +127,8 @@ void csmTimerCallback(const ros::TimerEvent&)
     csm.run();
     csm.publishSudokuLedMnistFire(sudoku_ctr_pub, led_ctr_pub, mnist_ctr_pub, fire_ctr_pub);
     if (csm.isWait()) {
-        serial.receive();
-        if (serial.buffMode() == 1 
-                || serial.buffMode() == 2) {
-            ROS_INFO("Enter Buff Mode!");
-            csm.transferState(ControlSM::READY);
-        }
+        //serial.receive();
+        return;
     }
     int block_id = csm.sendBlockID();
     if (block_id > 0) {
@@ -143,12 +143,37 @@ void csmTimerCallback(const ros::TimerEvent&)
     }
 }
 
+void exitTimerCallback(const ros::TimerEvent&)
+{
+    serial.receive();
+    int buff_mode = serial.buffMode();
+    if (buff_mode == 0) {
+        csm.transferState(ControlSM::WAIT);
+    }
+    if (buff_mode == 1) {
+        ROS_INFO("Enter Buff Mode Immediately!");
+        csm.setDemarcateComplete();
+        csm.transferState(ControlSM::READY);
+    }
+    if (buff_mode == 2) {
+        ROS_INFO("Enter Buff Mode!");
+        csm.transferState(ControlSM::READY);
+    }
+}
+
+void downlineTimerCallback(const ros::TimerEvent&)
+{
+    csm.setDownline();
+}
+
 int main(int argc, char* argv[])
 {
     ros::init(argc, argv, "control");
     ros::NodeHandle nh;
     ros::Timer csm_timer = nh.createTimer(ros::Duration(0.01), csmTimerCallback);
     ros::Timer waitkey_timer = nh.createTimer(ros::Duration(0.1), waitkeyTimerCallback);
+    ros::Timer exit_timer = nh.createTimer(ros::Duration(0.1), exitTimerCallback);
+    ros::Timer downline_timer = nh.createTimer(ros::Duration(0.2), downlineTimerCallback);
 
     ROS_INFO("Control Start!");
     ros::Subscriber led_num_sub

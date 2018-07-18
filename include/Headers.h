@@ -50,9 +50,9 @@ using namespace cv;
 #   define PLATFORM PC
 #endif
 
-#define DRAW          NO_SHOW
+#define DRAW          SHOW_ALL
 #define RECORD RECORD_OFF
-#define OPENMP_SWITCH OPENMP_RUN
+#define OPENMP_SWITCH OPENMP_STOP
 
 
 using std::copy;

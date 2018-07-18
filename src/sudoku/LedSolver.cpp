@@ -85,6 +85,7 @@ bool LedSolver::process(Mat& led_roi, Rect& bound_all_rect)
     getRed(led_roi, led_roi_binary);
     findContours(led_roi_binary.clone(), contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
     digits.clear();
+    Rect led_roi_rect = Rect(0, 0, led_roi_binary.size().width, led_roi_binary.size().height);
     for (uint i = 0; i < contours.size(); ++i) {
         Rect bound = boundingRect(contours[i]);
         //if (bound.x < 10 || bound.x + bound.width > led_roi.cols - 10
@@ -124,6 +125,10 @@ bool LedSolver::process(Mat& led_roi, Rect& bound_all_rect)
                     newx = (digits[i].x + digits[i + 1].x) / 2;
                 }
                 Rect bound = Rect(newx, newy, newwidth, newheight);
+                if (!(led_roi_rect.contains(bound.tl())&&led_roi_rect.contains(bound.br()))) {
+                    ROS_ERROR("Led Guess Out Bound");
+                    continue;
+                }
                 ROS_INFO_STREAM("Led Guess Rect: " << bound);
                 digits.push_back(bound);
             }
@@ -134,6 +139,11 @@ bool LedSolver::process(Mat& led_roi, Rect& bound_all_rect)
             while (left && digits.size() < 5) {
                 int newx = digits.front().x - maxwidth * 4 / 3 - 3, newy = digits.front().y, newwidth = maxwidth + 3, newheight = digits.front().height;
                 Rect bound = Rect(newx, newy, newwidth, newheight);
+                if (!(led_roi_rect.contains(bound.tl())&&led_roi_rect.contains(bound.br()))) {
+                    ROS_ERROR("Led Guess Out Bound left");
+                    left = false;
+                    continue;
+                }
                 Mat roi = (led_roi_binary)(bound).clone();
                 if (predictCross(roi) == -1)
                     left = false;
@@ -143,6 +153,11 @@ bool LedSolver::process(Mat& led_roi, Rect& bound_all_rect)
             while (right && digits.size() < 5) {
                 int newx = digits.back().x + maxwidth * 4 / 3 - 3, newy = digits.back().y, newwidth = maxwidth + 3, newheight = digits.back().height;
                 Rect bound = Rect(newx, newy, newwidth, newheight);
+                if (!(led_roi_rect.contains(bound.tl())&&led_roi_rect.contains(bound.br()))) {
+                    ROS_ERROR("Led Guess Out Bound right");
+                    right = false;
+                    continue;
+                }
                 Mat roi = (led_roi_binary)(bound).clone();
                 if (predictCross(roi) == -1)
                     right = false;

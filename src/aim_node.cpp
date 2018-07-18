@@ -181,6 +181,7 @@ int main(int argc, char* argv[])
                     continue;
                 if (frame.empty())
                     continue;
+                cvtColor(frame, frame, CV_BGR2GRAY);
                 demarcate();
                 imshow("aim src", frame);
                 waitKey(1);

@@ -16,6 +16,10 @@ public:
         LED_FIVE,
         STATE_SIZE
     } state;
+    enum BuffType {
+        MNIST,
+        FIRE
+    } buff_type;
 
     ControlSM();
     ~ControlSM();
@@ -34,6 +38,8 @@ public:
     int getBlockIdNow();
     int sendBlockID();
     bool isWait() {return state == WAIT;}
+    void setBuffType(BuffType type) {buff_type = type;}
+    void setDownline() {wait_for_downline = false;}
     //bool serial_send;
 
 private:
@@ -64,6 +70,7 @@ private:
     bool led_fresh;
     bool serial_send;
     bool wait_for_demarcate;
+    bool wait_for_downline;
 
     void transferNext();
     bool sudokuChange();
@@ -71,7 +78,13 @@ private:
 
     inline void activateSudoku() {sudoku_run = true;}
     inline void pauseSudoku() {sudoku_run = false;}
-    inline void activateLedMnistFire() {led_run = mnist_run = fire_run = true;}
+    inline void activateLedMnistFire() {
+        led_run = true;
+        if (buff_type == MNIST) 
+            mnist_run = true;
+        else if (buff_type == FIRE)
+            fire_run = true;
+    }
     inline void pauseLedMnistFire() {led_run = mnist_run = fire_run = false;}
     inline void activateTick() {tick_run = true;}
     inline void pauseTick() {tick_run = false;}
