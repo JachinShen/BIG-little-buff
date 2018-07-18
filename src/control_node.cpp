@@ -29,14 +29,14 @@ void mnistNumCallback(const std_msgs::Int16MultiArray& msg)
         return;
     }
     csm.setSudoku(msg.data);
-    //ROS_INFO_STREAM("Mnist: " << msg.data[0] << msg.data[1]
-            //<< msg.data[2] << msg.data[3] << msg.data[4]
-            //<< msg.data[5] << msg.data[6] << msg.data[7]
-            //<< msg.data[8] << msg.data[9]);
-    //ROS_INFO_STREAM("Mnist Possibility: " << msg.data[10] << " " << msg.data[11] << " "
-            //<< msg.data[12] << " " << msg.data[13] << " " << msg.data[14] << " "
-            //<< msg.data[15] << " " << msg.data[16] << " " << msg.data[17] << " "
-            //<< msg.data[18] << " " << msg.data[19]);
+    ROS_INFO_STREAM("Mnist: " << msg.data[0] << msg.data[1]
+            << msg.data[2] << msg.data[3] << msg.data[4]
+            << msg.data[5] << msg.data[6] << msg.data[7]
+            << msg.data[8] << msg.data[9]);
+    ROS_INFO_STREAM("Mnist Possibility: " << msg.data[10] << " " << msg.data[11] << " "
+            << msg.data[12] << " " << msg.data[13] << " " << msg.data[14] << " "
+            << msg.data[15] << " " << msg.data[16] << " " << msg.data[17] << " "
+            << msg.data[18] << " " << msg.data[19]);
 }
 
 void fireNumCallback(const std_msgs::Int16MultiArray& msg)
@@ -106,9 +106,11 @@ void waitkeyTimerCallback(const ros::TimerEvent&)
 {
     char key_press = waitKey(1);
     if (key_press == 'b') {
-        csm.setBuffType(ControlSM::FIRE);
+        ROS_INFO("Mnist Mode!");
+        csm.setBuffType(ControlSM::MNIST);
         csm.transferState(ControlSM::READY);
     } else if (key_press == 'g') {
+        ROS_INFO("Fire Mode!");
         csm.setBuffType(ControlSM::FIRE);
         csm.transferState(ControlSM::READY);
     } else if (key_press == 'c') {

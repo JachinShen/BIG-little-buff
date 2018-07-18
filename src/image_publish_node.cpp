@@ -139,10 +139,10 @@ void ledCtrCallback(const std_msgs::Bool& msg)
 
 void mnistProcess()
 {
-    //if (!mnist_run) {
-        ////ROS_INFO("Ignore Mnist!");
-        //return;
-    //}
+    if (!mnist_run) {
+        //ROS_INFO("Ignore Mnist!");
+        return;
+    }
 
     if (sudoku_rect.area() == 0)
         return;
@@ -170,7 +170,7 @@ void mnistProcess()
         }
     }
 
-    sort(mnist_rect.begin(), mnist_rect.end(), compareRectX);
+    sort(mnist_rect.begin(), mnist_rect.end(), compareRect);
     mnist_roi.clear();
     binary = ~binary;
     for (uint i = 0; i < mnist_rect.size(); ++i) {
@@ -191,8 +191,8 @@ void mnistProcess()
     for (uint i = 0; i < 10; ++i) {
         mnist_num_msg.data.push_back(mnist_classifier.confirmNumber(i));
     }
-    //mnist_num_pub.publish(mnist_num_msg);
-    fire_num_pub.publish(mnist_num_msg);
+    mnist_num_pub.publish(mnist_num_msg);
+    //fire_num_pub.publish(mnist_num_msg);
 
 #if DRAW == SHOW_ALL
     for (uint i = 0; i < mnist_rect.size(); ++i) {
@@ -384,7 +384,7 @@ int main(int argc, char** argv)
                 cv::cvtColor(img, gray, CV_BGR2GRAY);
                 sudokuProcess();
                 ledProcess();
-                //mnistProcess();
+                mnistProcess();
                 fireProcess();
                 ROS_INFO("Process End");
                 //msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", frame).toImageMsg();
@@ -397,7 +397,7 @@ int main(int argc, char** argv)
                 g_writer.write(img);
 #endif
                 imshow("src", img);
-                waitKey(0);
+                waitKey(1);
             }
         }
 #elif OPENMP_SWITCH == OPENMP_RUN
