@@ -231,7 +231,7 @@ void fireProcess()
 
     sudoku_roi = gray(sudoku_rect);
     //cvtColor(sudoku_roi, gray, CV_BGR2GRAY);
-    threshold(sudoku_roi, binary, 170, 255, CV_THRESH_BINARY);
+    threshold(sudoku_roi, binary, 150, 255, CV_THRESH_BINARY);
 
     findContours(binary.clone(), contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
     int MAX_AREA = sudoku_rect.area() / 9 * 2;
@@ -397,7 +397,10 @@ int main(int argc, char** argv)
                 g_writer.write(img);
 #endif
                 imshow("src", img);
-                waitKey(1);
+                if (video_type == VIDEO_CAMERA)
+                    waitKey(1);
+                else if (video_type == VIDEO_FILE)
+                    waitKey(0);
             }
         }
 #elif OPENMP_SWITCH == OPENMP_RUN
