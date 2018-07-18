@@ -448,8 +448,8 @@ int main(int argc, char** argv)
         }
 #endif
 
-#if RECORD == RECORD_ON
-        g_writer.close();
-#endif
+//#if RECORD == RECORD_ON
+        //g_writer.close();
+//#endif
     }
 }
