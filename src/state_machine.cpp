@@ -90,7 +90,8 @@ void ControlSM::run()
         || state == THREE_FOUR || state == FOUR_FIVE) {
         if (led_fresh && sudoku_fresh) {
             checkLed();
-            if (led_remain && sudoku_confirm[led[1]] > 60) {
+            if (led_remain) {
+            //if (led_remain && sudoku_confirm[led[1]] > 60) {
                 transferNext();
             } else if (led[0] != -1) {
             //} else if (led[0] != -1 && sudoku_confirm[led[0]] > 50) {

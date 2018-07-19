@@ -224,32 +224,36 @@ void fireProcess()
     if (sudoku_rect.area() == 0)
         return;
 
-    static Mat binary, sudoku_roi;
+    static Mat binary, sudoku_roi, fire_binary;
     static vector<Mat> fire_roi;
     vector<Rect>               fire_rect;
     vector<vector<Point> > contours;
 
     sudoku_roi = gray(sudoku_rect);
     //cvtColor(sudoku_roi, gray, CV_BGR2GRAY);
-    threshold(sudoku_roi, binary, 130, 255, CV_THRESH_BINARY);
+    threshold(sudoku_roi, binary, 100, 255, CV_THRESH_BINARY);
+    threshold(sudoku_roi, fire_binary, 150, 255, CV_THRESH_BINARY);
 
     findContours(binary.clone(), contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
-    int MAX_AREA = sudoku_rect.area() / 9 * 2;
+    int MAX_AREA = sudoku_rect.area() / 9;
     for (uint i = 0; i < contours.size(); ++i) {
         Rect bound = boundingRect(contours[i]);
         if (bound.area() < 100 || bound.area() > MAX_AREA)
             continue;
         fire_rect.push_back(bound);
     }
+    if (fire_rect.size() != 9) {
+        return;
+    }
     sort(fire_rect.begin(), fire_rect.end(), compareRect);
 
     fire_roi.clear();
     for (uint i=0; i<fire_rect.size(); ++i) {
-        Mat roi = (binary(fire_rect[i]));
-        int left_right_gap = (roi.rows - roi.cols) / 2 + 5;
+        Mat roi = (fire_binary(fire_rect[i]));
+        int left_right_gap = (roi.rows - roi.cols) / 2 + 3;
         if (left_right_gap <= 0)
             continue;
-        copyMakeBorder(roi, roi, 5, 5, left_right_gap, left_right_gap, BORDER_CONSTANT);
+        copyMakeBorder(roi, roi, 3, 3, left_right_gap, left_right_gap, BORDER_CONSTANT);
         resize(roi, roi, Size(28, 28));
         imshow("Fire roi", roi);
         fire_roi.push_back(roi);

@@ -199,7 +199,7 @@ bool BlockSplit::process(Mat& input, Rect& led_rect,
         return false;
 
     sudoku_rect = Rect(whole_block_x + 10, whole_block_y,
-            whole_block_width - 20, whole_block_height);
+            whole_block_width - 20, whole_block_height + 5);
 
     //cout << "Sudoku Rect: " << sudoku_rect << endl;
 
