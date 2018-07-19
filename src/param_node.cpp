@@ -61,7 +61,7 @@ static int LED_PARAM[LedSolver::PARAM_SIZE] = {
     //1500,
     120,
     1400,
-    250,
+    240,
     5
 };
 
@@ -97,8 +97,8 @@ int ledParamMax(int index)
 
 static int AIM_PARAM[BlockSplit::PARAM_SIZE] = {
     70,
-    700,
-    2000,
+    190,
+    1000,
     30,
     100,
     70

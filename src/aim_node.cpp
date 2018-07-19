@@ -17,6 +17,8 @@ static enum TargetPos { TOP_LEFT,
     RIGHT_BOTTOM } target_pos;
 static ros::Publisher aim_pos_pub;
 static ros::Subscriber aim_param_sub;
+static int offset_y;
+static int offset_x;
 
 void process()
 {
@@ -74,7 +76,9 @@ void demarcate()
             aim_pos_msg.data.push_back(rb_aim_rect.y + rb_aim_rect.height / 2);
             break;
         }
-        //aim_pos_msg.data[1] -= 60;
+        aim_pos_msg.data[0] -= (offset_x - 100);
+        aim_pos_msg.data[1] -= offset_y;
+        //ROS_INFO_STREAM("Offset y" << offset_y);
         if (320 - 3 <= aim_pos_msg.data[0] && aim_pos_msg.data[0] <= 320 + 3
                 && 240-3 <= aim_pos_msg.data[1] && aim_pos_msg.data[1] <= 240 + 3) {
             target_pos = (TargetPos)((target_pos + 1));
@@ -117,6 +121,36 @@ void aimReadyCallback(const std_msgs::Bool& msg)
     //tracker.init(aim_rect, car_image);
 }
 
+string getFilename()
+{
+#if PLATFORM == PC
+    fstream fin("/home/jachinshen/Projects/lunar_ws/src/buff/out2.txt");
+#elif PLATFORM == MANIFOLD
+    fstream fin("/home/ubuntu/lunar_ws/src/buff/out2.txt");
+#endif
+    int video_cnt;
+    fin>>video_cnt;
+    stringstream video_ss;
+    video_ss<<video_cnt;
+
+    fin.close();
+    std::string file_name=video_ss.str();
+#if PLATFORM == PC
+    fstream fout("/home/jachinshen/Projects/lunar_ws/src/buff/out2.txt");
+#elif PLATFORM == MANIFOLD
+    fstream fout("/home/ubuntu/lunar_ws/src/buff/out2.txt");
+#endif
+    video_cnt++;
+    fout<<video_cnt;
+    fout.close();
+
+#if PLATFORM == PC
+    file_name = "/home/jachinshen/record_vice"+file_name+".avi";
+#elif PLATFORM == MANIFOLD
+    file_name = "/home/ubuntu/record_vice"+file_name+".avi";
+#endif
+    return file_name;
+}
 int main(int argc, char* argv[])
 {
     ROS_INFO("Aim Start!");
@@ -137,10 +171,16 @@ int main(int argc, char* argv[])
     Rect led_rect, sudoku_rect;
     block_split.init();
     aim_ready_run = true;
+    offset_y = 0;
+    offset_x = 100;
     while (nh.ok()) {
         enum { VIDEO_FILE, VIDEO_CAMERA } video_type;
         cv::VideoCapture cap;
         GlobalCamera global_cap;
+#if RECORD == RECORD_ON
+        cv::VideoWriter g_writer;
+        g_writer.open(getFilename(), CV_FOURCC('P','I','M','1'),30,cv::Size(640,480));
+#endif
         aim_ready_run = false;
         if ('0' <= argv[1][0] && argv[1][0] <= '9') {
             video_type = VIDEO_CAMERA;
@@ -185,7 +225,12 @@ int main(int argc, char* argv[])
                     cvtColor(frame, frame, CV_BGR2GRAY);
                 }
                 demarcate();
-                imshow("aim src", frame);
+                imshow("AimSrc", frame);
+                createTrackbar("offset y", "AimSrc", &offset_y, 100);
+                createTrackbar("offset x", "AimSrc", &offset_x, 200);
+#if RECORD == RECORD_ON
+                g_writer.write(frame);
+#endif
                 waitKey(1);
             }
         } else if (video_type == VIDEO_FILE) {
@@ -198,7 +243,9 @@ int main(int argc, char* argv[])
                 }
                 ros::spinOnce();
                 demarcate();
-                imshow("aim src", frame);
+                imshow("AimSrc", frame);
+                createTrackbar("offset y", "AimSrc", &offset_y, 100);
+                createTrackbar("offset x", "AimSrc", &offset_x, 200);
                 waitKey(1);
                 //loop_rate.sleep();
             }

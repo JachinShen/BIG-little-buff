@@ -114,7 +114,7 @@ void ledProcess()
         }
     } else {
         ++led_miss_ctr;
-        if (led_miss_ctr >= 2) {
+        if (led_miss_ctr >= 5) {
             led_miss_ctr = 0;
             led_num_msg.data.clear();
             for (uint i = 0; i < 5; ++i)
@@ -231,13 +231,13 @@ void fireProcess()
 
     sudoku_roi = gray(sudoku_rect);
     //cvtColor(sudoku_roi, gray, CV_BGR2GRAY);
-    threshold(sudoku_roi, binary, 150, 255, CV_THRESH_BINARY);
+    threshold(sudoku_roi, binary, 130, 255, CV_THRESH_BINARY);
 
     findContours(binary.clone(), contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
     int MAX_AREA = sudoku_rect.area() / 9 * 2;
     for (uint i = 0; i < contours.size(); ++i) {
         Rect bound = boundingRect(contours[i]);
-        if (bound.area() < 200 || bound.area() > MAX_AREA)
+        if (bound.area() < 100 || bound.area() > MAX_AREA)
             continue;
         fire_rect.push_back(bound);
     }
