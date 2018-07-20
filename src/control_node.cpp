@@ -129,7 +129,6 @@ void csmTimerCallback(const ros::TimerEvent&)
     csm.run();
     csm.publishSudokuLedMnistFire(sudoku_ctr_pub, led_ctr_pub, mnist_ctr_pub, fire_ctr_pub);
     if (csm.isWait()) {
-        //serial.receive();
         return;
     }
     int block_id = csm.sendBlockID();
@@ -150,12 +149,14 @@ void exitTimerCallback(const ros::TimerEvent&)
     serial.receive();
     int buff_mode = serial.buffMode();
     if (buff_mode == 0) {
+        ROS_INFO("Reset!");
+        csm.init();
         csm.transferState(ControlSM::WAIT);
     }
     if (buff_mode == 1) {
         ROS_INFO("Enter Buff Mode Immediately!");
-        csm.setDemarcateComplete();
         csm.transferState(ControlSM::READY);
+        csm.setDemarcateComplete();
     }
     if (buff_mode == 2) {
         ROS_INFO("Enter Buff Mode!");

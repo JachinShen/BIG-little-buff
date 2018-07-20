@@ -14,7 +14,8 @@ static bool aim_ready_run;
 static BlockSplit block_split;
 static enum TargetPos { TOP_LEFT,
     CENTER,
-    RIGHT_BOTTOM } target_pos;
+    RIGHT_BOTTOM,
+    POS_SIZE} target_pos;
 static ros::Publisher aim_pos_pub;
 static ros::Subscriber aim_param_sub;
 static int offset_y;
@@ -57,6 +58,8 @@ void demarcate()
             rb_aim_rect = rb_tracker.update(frame);
             rectangle(frame, rb_aim_rect, 255, 4);
             break;
+        case POS_SIZE: ROS_INFO("Exit");
+            return; break;
         default:
             target_pos = TOP_LEFT;
         }
@@ -68,13 +71,14 @@ void demarcate()
             aim_pos_msg.data.push_back(tl_aim_rect.y + tl_aim_rect.height / 2);
             break;
         case CENTER:
-            aim_pos_msg.data.push_back(center_aim_rect.x + center_aim_rect.width / 2);
+            aim_pos_msg.data.push_back(center_aim_rect.x + center_aim_rect.width / 2 - 5);
             aim_pos_msg.data.push_back(center_aim_rect.y + center_aim_rect.height / 2);
             break;
         case RIGHT_BOTTOM:
             aim_pos_msg.data.push_back(rb_aim_rect.x + rb_aim_rect.width / 2);
             aim_pos_msg.data.push_back(rb_aim_rect.y + rb_aim_rect.height / 2);
             break;
+        case POS_SIZE: return;
         }
         aim_pos_msg.data[0] -= (offset_x - 100);
         aim_pos_msg.data[1] -= offset_y;
@@ -82,7 +86,7 @@ void demarcate()
         if (320 - 3 <= aim_pos_msg.data[0] && aim_pos_msg.data[0] <= 320 + 3
                 && 240-3 <= aim_pos_msg.data[1] && aim_pos_msg.data[1] <= 240 + 3) {
             target_pos = (TargetPos)((target_pos + 1));
-            if (target_pos >= 3) {
+            if (target_pos >= POS_SIZE) {
                 aim_pos_msg.data.push_back(-1);
                 aim_ready_run = false;
             } else {
@@ -109,6 +113,7 @@ void aimReadyCallback(const std_msgs::Bool& msg)
     ROS_INFO("Aim Ready Call!");
     aim_ready_run = msg.data;
     target_pos = TOP_LEFT;
+    center_aim_rect = Rect(0, 0, 0, 0);
     process();
     //aim_rect = Rect(msg.data[0], msg.data[1], msg.data[2], msg.data[3]);
     //ROS_INFO_STREAM("Aim Rect: " << aim_rect);
@@ -171,8 +176,8 @@ int main(int argc, char* argv[])
     Rect led_rect, sudoku_rect;
     block_split.init();
     aim_ready_run = true;
-    offset_y = 0;
-    offset_x = 100;
+    offset_y = 53;
+    offset_x = 91;
     while (nh.ok()) {
         enum { VIDEO_FILE, VIDEO_CAMERA } video_type;
         cv::VideoCapture cap;
@@ -213,7 +218,7 @@ int main(int argc, char* argv[])
         if (video_type == VIDEO_CAMERA) {
             while (ros::ok()) {
                 ros::spinOnce();
-                if (target_pos >= 3) {
+                if (target_pos == POS_SIZE) {
                     loop_rate.sleep();
                     continue;
                 }
@@ -234,19 +239,26 @@ int main(int argc, char* argv[])
                 waitKey(1);
             }
         } else if (video_type == VIDEO_FILE) {
-            while (target_pos <= 2 && cap.read(frame) && ros::ok()) {
+            while (ros::ok()) {
+                ros::spinOnce();
+                if (target_pos == POS_SIZE)
+                    continue;
+                if (!cap.read(frame))
+                    continue;
                 if (frame.empty())
                     continue;
                 resize(frame, frame, Size(640, 480));
                 if (frame.channels() != 1) {
                     cvtColor(frame, frame, CV_BGR2GRAY);
                 }
-                ros::spinOnce();
                 demarcate();
                 imshow("AimSrc", frame);
                 createTrackbar("offset y", "AimSrc", &offset_y, 100);
                 createTrackbar("offset x", "AimSrc", &offset_x, 200);
-                waitKey(1);
+                char key_press = waitKey(1);
+                if (key_press == 'c') {
+                    target_pos = POS_SIZE;
+                }
                 //loop_rate.sleep();
             }
         }

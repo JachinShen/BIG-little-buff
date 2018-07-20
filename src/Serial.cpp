@@ -107,7 +107,11 @@ void Serial::sendString(char* data, int length)
 
 int Serial::receive()
 {
+    for (int i=0; i<30; ++i) {
+        receive_buf[i] = 0;
+    }
     return read(fd, receive_buf, 30);
+    //cout << "Receive: " << receive_buf << endl;
 }
 
 void Serial::sendTarget(int target_x, int target_y, int is_found)
@@ -191,6 +195,8 @@ int Serial::buffMode()
             default: break;
         }
         if (stm_state == 4) {
+            stm_state = 0;
+            //cout << endl;
             return buff_mode;
         }
 
