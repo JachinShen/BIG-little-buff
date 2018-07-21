@@ -144,7 +144,6 @@ bool BlockSplit::process(Mat& input, Rect& led_rect,
         Rect bound = boundingRect(contours[i]);
         if (bound.area() < param[AREA_MIN] || bound.area() > param[AREA_MAX])
             continue;
-
         float hw_ratio = (float)bound.height / bound.width * 100;
         ////cout << "HW ratio: " << hw_ratio << endl;
         if (hw_ratio < param[HW_RATIO_MIN] || hw_ratio > param[HW_RATIO_MAX])
@@ -157,6 +156,7 @@ bool BlockSplit::process(Mat& input, Rect& led_rect,
         if (area / bound.area() * 100 < param[AREA_RATIO])
             continue;
         //cout << "Area: " << bound.area() << endl;
+        //cout << "Block Area: " << bound.area() << endl;
         side_blocks.push_back(bound);
     }
 

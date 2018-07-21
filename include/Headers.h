@@ -51,7 +51,7 @@ using namespace cv;
 #endif
 
 #define DRAW          SHOW_ALL
-#define RECORD RECORD_ON
+#define RECORD        RECORD_ON
 #define OPENMP_SWITCH OPENMP_STOP
 
 

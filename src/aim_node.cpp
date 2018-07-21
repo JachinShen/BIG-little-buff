@@ -67,11 +67,11 @@ void demarcate()
         aim_pos_msg.data.clear();
         switch (target_pos) {
         case TOP_LEFT:
-            aim_pos_msg.data.push_back(tl_aim_rect.x + tl_aim_rect.width / 2);
+            aim_pos_msg.data.push_back(tl_aim_rect.x + tl_aim_rect.width / 2 + 10);
             aim_pos_msg.data.push_back(tl_aim_rect.y + tl_aim_rect.height / 2);
             break;
         case CENTER:
-            aim_pos_msg.data.push_back(center_aim_rect.x + center_aim_rect.width / 2 - 5);
+            aim_pos_msg.data.push_back(center_aim_rect.x + center_aim_rect.width / 2 - 15);
             aim_pos_msg.data.push_back(center_aim_rect.y + center_aim_rect.height / 2);
             break;
         case RIGHT_BOTTOM:
@@ -112,9 +112,14 @@ void aimReadyCallback(const std_msgs::Bool& msg)
 {
     ROS_INFO("Aim Ready Call!");
     aim_ready_run = msg.data;
-    target_pos = TOP_LEFT;
-    center_aim_rect = Rect(0, 0, 0, 0);
-    process();
+    if (aim_ready_run) {
+        target_pos = TOP_LEFT;
+        center_aim_rect = Rect(0, 0, 0, 0);
+        process();
+    } else {
+        target_pos = POS_SIZE;
+        center_aim_rect = Rect(0, 0, 0, 0);
+    }
     //aim_rect = Rect(msg.data[0], msg.data[1], msg.data[2], msg.data[3]);
     //ROS_INFO_STREAM("Aim Rect: " << aim_rect);
 
@@ -176,6 +181,7 @@ int main(int argc, char* argv[])
     Rect led_rect, sudoku_rect;
     block_split.init();
     aim_ready_run = true;
+    center_aim_rect = Rect(0, 0, 0, 0);
     offset_y = 53;
     offset_x = 91;
     while (nh.ok()) {

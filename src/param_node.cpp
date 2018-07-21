@@ -11,13 +11,13 @@ static std_msgs::Int16MultiArray aim_param_msg;
 
 static int SUDOKU_PARAM[BlockSplit::PARAM_SIZE] = {
     //35,
-    60,
+    40,
     //100,
-    190,
+    500,
     //300,
     //900,
     //660,
-    500,
+    1000,
     //3000,
     30,
     100,
@@ -96,9 +96,9 @@ int ledParamMax(int index)
 }
 
 static int AIM_PARAM[BlockSplit::PARAM_SIZE] = {
-    70,
-    190,
-    1000,
+    50,
+    500,
+    1500,
     30,
     100,
     70

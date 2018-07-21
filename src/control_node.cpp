@@ -82,23 +82,29 @@ void aimPosCallback(const std_msgs::Int16MultiArray& msg)
         ROS_ERROR("Control Aim Pos");
         return;
     }
-    int target_x = msg.data[0], target_y = msg.data[1];
-    int is_found = msg.data[2];
-    if (is_found == -1) {
-        ROS_INFO("Demarcate Complete");
-        serial.sendTarget(target_x, target_y, 14);
-        serial.sendTarget(target_x, target_y, 14);
-        serial.sendTarget(target_x, target_y, 14);
-        serial.sendTarget(target_x, target_y, 14);
-        serial.sendTarget(target_x, target_y, 14);
-        serial.sendTarget(target_x, target_y, 14);
-        serial.sendTarget(target_x, target_y, 14);
-        serial.sendTarget(target_x, target_y, 14);
-        serial.sendTarget(target_x, target_y, 14);
-        serial.sendTarget(target_x, target_y, 14);
-        csm.setDemarcateComplete();
+    if (csm.wait_for_demarcate) {
+        int target_x = msg.data[0], target_y = msg.data[1];
+        int is_found = msg.data[2];
+        if (is_found == -1) {
+            ROS_INFO("Demarcate Complete");
+            serial.sendTarget(target_x, target_y, 14);
+            serial.sendTarget(target_x, target_y, 14);
+            serial.sendTarget(target_x, target_y, 14);
+            serial.sendTarget(target_x, target_y, 14);
+            serial.sendTarget(target_x, target_y, 14);
+            serial.sendTarget(target_x, target_y, 14);
+            serial.sendTarget(target_x, target_y, 14);
+            serial.sendTarget(target_x, target_y, 14);
+            serial.sendTarget(target_x, target_y, 14);
+            serial.sendTarget(target_x, target_y, 14);
+            csm.setDemarcateComplete();
+        } else {
+            serial.sendTarget(target_x, target_y, 10 + is_found);
+        }
     } else {
-        serial.sendTarget(target_x, target_y, 10 + is_found);
+        static std_msgs::Bool aim_ready_msg;
+        aim_ready_msg.data = false;
+        aim_ready_pub.publish(aim_ready_msg);
     }
 }
 

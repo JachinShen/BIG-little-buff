@@ -20,6 +20,7 @@ public:
         MNIST,
         FIRE
     } buff_type;
+    bool wait_for_demarcate;
 
     ControlSM();
     ~ControlSM();
@@ -69,7 +70,6 @@ private:
     bool sudoku_fresh;
     bool led_fresh;
     bool serial_send;
-    bool wait_for_demarcate;
     bool wait_for_downline;
 
     void transferNext();
