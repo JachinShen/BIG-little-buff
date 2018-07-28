@@ -32,9 +32,9 @@ using namespace cv;
 void initImageProcess()
 {
     block_split.init();
-    sudoku_run = true;
+    sudoku_run = false;
     led_solver.init();
-    led_run = true;
+    led_run = false;
 
 #if PLATFORM == PC
     string model_file   = "/home/jachinshen/Projects/lunar_ws/src/buff/caffemodels/mnist_model.prototxt";
@@ -53,7 +53,7 @@ void initImageProcess()
 #endif
 
     mnist_classifier.init(model_file, trained_file, mean_file, label_file);
-    mnist_run = true;
+    mnist_run = false;
     fire_classifier.init(fire_model_file, fire_trained_file, mean_file, label_file);
     fire_run = false;
 }

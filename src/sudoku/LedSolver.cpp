@@ -102,6 +102,7 @@ bool LedSolver::process(Mat& led_roi, Rect& bound_all_rect)
         ROS_INFO_STREAM("HW ration: " << hw_ratio);
         if (hw_ratio < param[HW_RATIO_MIN] / 100.0 || hw_ratio > param[HW_RATIO_MAX] / 100.0)
             continue;
+        ROS_INFO_STREAM("Led Area: " << bound.area());
         digits.push_back(bound);
     }
 
