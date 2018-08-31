@@ -25,3 +25,8 @@
 - fire_num: The fire numbers on the sudoku
 - *_ctr: The control signal
 - *_param: To adjust params
+
+## Sudoku Algorithm
+
+- Use gray image, threshold and findContour
+- Find the 5 small blocks on the side
