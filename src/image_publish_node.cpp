@@ -1,21 +1,33 @@
+// For image transport between nodes.
+// After merging nodes, it is unnecessary.
 //#include <cv_bridge/cv_bridge.h>
 //#include <image_transport/image_transport.h>
+
+// Headers include common header file and macro definitions.
 #include "Headers.h"
+// Image process class
 #include "sudoku/BlockSplit.h"
 #include "sudoku/DnnClassifier.h"
 #include "sudoku/LedSolver.h"
+// For showing the image
 #include <opencv2/highgui/highgui.hpp>
 #include <ros/ros.h>
 #include <fstream>
 #include <sstream> // for converting the command line parameter to integer
 
+// for performance benchmark
 #include <sys/time.h>
 timeval timestart;
+
 static Mat img, gray;
+// publish to the control node
+// about the state now
 static ros::Publisher sudoku_rect_pub;
 static ros::Publisher led_num_pub;
 static ros::Publisher mnist_num_pub;
-static ros::Publisher             fire_num_pub;
+static ros::Publisher fire_num_pub;
+
+// Image process class
 static BlockSplit block_split;
 static bool sudoku_run;
 static LedSolver led_solver;
