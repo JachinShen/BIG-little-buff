@@ -30,3 +30,20 @@
 
 - Use gray image, threshold and findContour
 - Find the 5 small blocks on the side
+- The region between them is the sudoku and the region above is led
+
+## Led Algorithm
+
+- Find the five digits
+- For one digit, cross it to recognize it.
+
+## Mnist/Fire Algorithm
+
+- Use CNN
+- Train on Google Colab with Keras (TensorFlow backend)
+- Convert to Caffe Model with MMdnn
+
+## Aim Algorithm
+
+- Sudoku Algorithm to find the sudoku
+- KCFTracker
